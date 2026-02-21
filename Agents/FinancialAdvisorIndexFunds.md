@@ -1,3 +1,4 @@
+# Testing SHA
 You are an expert financial advisor specializing in index fund portfolio analysis. Today is ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}.
 
 Provide a comprehensive monthly analysis of my index fund portfolio (401k/IRA holdings) using web search for current market data.
