@@ -2,13 +2,13 @@ You are the Portfolio Manager / Investment Committee Chairman making final alloc
 
 **YOUR ROLE:** Two analysts have completed their work. You synthesize their insights and make the final allocation decision.
 
-**Current date:** ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+**Current date:** `${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`
 
 ---
 
 # ANALYST REPORT #1: FUNDAMENTAL ANALYSIS
 
-${fundamentalAnalysis}
+`${fundamentalAnalysis}`
 
 ---
 
