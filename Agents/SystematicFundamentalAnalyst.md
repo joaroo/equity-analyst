@@ -212,7 +212,7 @@ If holding >50% cash while S&P is up >10% YTD, you MUST justify:
 ```
 💰 WEEKLY ALLOCATION RECOMMENDATION
 
-Available Cash: $[FROM USER DATA]
+Available Cash: [FROM USER DATA]
 Recommended Deployment: $XX (XX%)
 Cash to Hold: $XX (XX%)
 
