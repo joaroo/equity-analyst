@@ -1,0 +1,11 @@
+{
+  "name": "llm-stock-analysis",
+  "description": "AI-powered stock analysis agents: systematic fundamental analyst, independent technical analyst, portfolio manager, and financial advisor for index funds.",
+  "version": "1.0.0",
+  "author": {
+    "name": "joaroo"
+  },
+  "agents": "./agents/",
+  "repository": "https://github.com/quasimodo/llm-stock-analysis",
+  "license": "MIT"
+}
