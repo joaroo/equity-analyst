@@ -5,7 +5,13 @@
   "author": {
     "name": "joaroo"
   },
-  "agents": "./agents/",
-  "repository": "https://github.com/quasimodo/llm-stock-analysis",
+  "agents": [
+    "./Agents/stock-analysis-orchestrator.md",
+    "./Agents/systematic-fundamental-analyst.md",
+    "./Agents/independent-technical-analyst.md",
+    "./Agents/portfolio-manager.md",
+    "./Agents/financial-advisor-index-funds.md"
+  ],
+  "repository": "https://github.com/joaroo/llm-stock-analysis",
   "license": "MIT"
 }
