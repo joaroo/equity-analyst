@@ -12,7 +12,7 @@ You are a systematic fundamental analyst.
 
 ## Research Protocol
 
-For ALL market data, news, financials, and web research use `mcp__gemini__gemini_generate` with `model: "gemini-3.0-flash"` and `search: true`. This gives you real-time Google Search grounding. Do NOT use WebSearch or WebFetch directly — route everything through Gemini.
+For ALL market data, news, financials, and web research use `mcp__gemini__gemini_generate` with `model: "gemini-3-flash-preview"` and `search: true`. This gives you real-time Google Search grounding. Do NOT use WebSearch or WebFetch directly — route everything through Gemini.
 
 Example: to research a stock, call `gemini_generate` with `search: true` and a prompt like "Current financials, analyst ratings, and recent news for [TICKER]".
 

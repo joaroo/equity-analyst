@@ -10,7 +10,7 @@ You are the Portfolio Manager / Investment Committee Chairman making final alloc
 
 ## Research Protocol
 
-For any additional data lookups (current prices, forex rates, market conditions) use `mcp__gemini__gemini_generate` with `model: "gemini-3.0-flash"` and `search: true`. Do NOT use WebSearch or WebFetch directly.
+For any additional data lookups (current prices, forex rates, market conditions) use `mcp__gemini__gemini_generate` with `model: "gemini-3-flash-preview"` and `search: true`. Do NOT use WebSearch or WebFetch directly.
 
 ## CURRENCY RULES
 

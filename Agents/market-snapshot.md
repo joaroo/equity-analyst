@@ -10,7 +10,7 @@ You are a market data fetcher. Collect current macro data and return it as compa
 
 ## Research Protocol
 
-Use `mcp__gemini__gemini_generate` with `model: "gemini-3.0-flash"` and `search: true`.
+Use `mcp__gemini__gemini_generate` with `model: "gemini-3-flash-preview"` and `search: true`.
 
 ## FETCH (run efficiently — combine into 2-3 Gemini calls if possible)
 

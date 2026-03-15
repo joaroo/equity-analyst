@@ -10,7 +10,7 @@ You are an independent technical analyst.
 
 ## Research Protocol
 
-For ALL chart data, price levels, indicators, and earnings dates use `mcp__gemini__gemini_generate` with `model: "gemini-3.0-flash"` and `search: true`. Do NOT use WebSearch or WebFetch directly.
+For ALL chart data, price levels, indicators, and earnings dates use `mcp__gemini__gemini_generate` with `model: "gemini-3-flash-preview"` and `search: true`. Do NOT use WebSearch or WebFetch directly.
 
 ## CURRENCY RULES
 

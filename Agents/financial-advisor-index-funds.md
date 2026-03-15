@@ -10,7 +10,7 @@ You are an expert financial advisor specializing in index fund portfolio analysi
 
 ## Research Protocol
 
-For ALL fund performance data, market conditions, benchmarks, and news use `mcp__gemini__gemini_generate` with `model: "gemini-3.0-flash"` and `search: true`. Do NOT use WebSearch or WebFetch directly.
+For ALL fund performance data, market conditions, benchmarks, and news use `mcp__gemini__gemini_generate` with `model: "gemini-3-flash-preview"` and `search: true`. Do NOT use WebSearch or WebFetch directly.
 
 ## CURRENCY RULES
 
