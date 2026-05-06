@@ -1,0 +1,62 @@
+name: portfolio-extractor
+description: |
+  Parses raw portfolio text into structured JSON using Ollama (local inference).
+  Also used in Phase 4 to reformat the final report for delivery via the configured notification channel.
+  Read-only — no external writes.
+
+permissions:
+  read_only: true
+  write: false
+
+tools:
+  - mcp__ollama__ollama_generate
+  - mcp__ollama__ollama_list_models
+
+data_connector: local-inference
+
+tasks:
+  extract-portfolio:
+    description: Parse user-provided portfolio text into structured JSON
+    input: raw portfolio text (holdings with buy-in prices, watchlist, index funds, cash)
+    output_schema:
+      type: object
+      properties:
+        holdings:
+          type: array
+          items:
+            properties:
+              ticker: {type: string}
+              name: {type: string}
+              buy_in_price: {type: number}
+              fractional: {type: boolean}
+              currency: {type: string}
+              exchange: {type: string}
+        watchlist:
+          type: array
+          items:
+            properties:
+              ticker: {type: string}
+              name: {type: string}
+              watch_price: {type: number}
+              currency: {type: string}
+        index_funds:
+          type: array
+          items:
+            properties:
+              ticker: {type: string}
+              allocation_pct: {type: number}
+        cash_available: {type: number}
+        cash_currency: {type: string}
+
+  format-notification:
+    description: Reformat markdown analysis report for delivery via the configured notification channel
+    input: final markdown report from portfolio-manager subagent
+    output: plaintext-friendly formatted string suitable for chat or email
+    formatting_rules:
+      - "## headings → *HEADING* (bold, no hashes — works across Telegram, Slack, email)"
+      - "**text** → *text* (single asterisks for broad compatibility)"
+      - "| table | rows → aligned plain text or bullet lists"
+      - "--- horizontal rules → blank line"
+      - "Preserve ✅ ⚠️ ❌ 🚨 emoji"
+      - "Preserve numbered lists and bullet points"
+      - "Keep triple-backtick code blocks"

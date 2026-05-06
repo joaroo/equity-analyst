@@ -1,0 +1,17 @@
+name: index-fund-advisor
+description: |
+  Monthly index fund portfolio analysis for tax-advantaged accounts.
+  Single-subagent pipeline — no orchestration complexity needed.
+version: "2.0"
+trigger: "command:/index-funds"
+
+pipeline:
+  phase_1:
+    description: "Index fund analysis"
+    steps:
+      - subagent: advisor
+        inputs:
+          holdings: "from:user-input"
+
+error_handling:
+  on_failure: "return error message to user"

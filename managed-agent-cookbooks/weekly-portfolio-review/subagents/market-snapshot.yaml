@@ -1,0 +1,25 @@
+name: market-snapshot
+description: |
+  Fetches current market conditions: S&P 500 levels, VIX, Fed stance, sector leadership.
+  Classifies market regime (RISK-ON / TRANSITIONAL / RISK-OFF).
+  Returns compact JSON consumed by downstream analyst subagents.
+  Read-only — no writes, no notifications.
+
+permissions:
+  read_only: true
+  write: false
+
+tools:
+  - mcp__gemini__gemini_generate
+  - mcp__gemini__gemini_list_models
+
+data_connector: market-data
+model: gemini-3-flash-preview
+search: true
+
+skill: ../../skills/market-snapshot/SKILL.md
+output_format: json-only
+
+constraints:
+  max_gemini_calls: 3
+  output_prose: false

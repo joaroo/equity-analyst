@@ -1,0 +1,27 @@
+{
+  "connectors": {
+    "market-data": {
+      "primary": "mcp__gemini__gemini_generate",
+      "search": true,
+      "model": "gemini-3-flash-preview",
+      "fallback": "WebFetch",
+      "purpose": "All real-time market data: prices, analyst ratings, earnings dates, macro indicators, sector performance"
+    },
+    "local-inference": {
+      "primary": "mcp__ollama__ollama_generate",
+      "model_list": "mcp__ollama__ollama_list_models",
+      "model_selection": "fastest-small",
+      "purpose": "Portfolio text extraction and notification message formatting"
+    },
+    "notifications": {
+      "connector": "${NOTIFICATION_MCP_TOOL}",
+      "purpose": "Progress updates and final report delivery via any configured chat or email channel (e.g. Telegram, Slack, email). Set NOTIFICATION_MCP_TOOL to the MCP tool name for your provider."
+    }
+  },
+  "priority_hierarchy": ["market-data", "WebFetch"],
+  "anti_patterns": [
+    "Do not use WebSearch or WebFetch for market data — route through market-data connector",
+    "Do not hardcode model names — use model_selection alias from local-inference connector",
+    "Do not call the notifications connector from read-only subagents — only portfolio-manager may write"
+  ]
+}

@@ -1,17 +1,23 @@
 {
   "name": "llm-stock-analysis",
-  "description": "AI-powered stock analysis agents: systematic fundamental analyst, independent technical analyst, portfolio manager, and financial advisor for index funds.",
-  "version": "1.0.0",
+  "description": "AI-powered stock analysis: systematic fundamental analyst, independent technical analyst, portfolio manager, and index fund advisor. Structured with skill files, governed data connectors, and managed agent templates.",
+  "version": "2.0.0",
   "author": {
     "name": "joaroo"
   },
-  "agents": [
-    "./Agents/stock-analysis-orchestrator.md",
-    "./Agents/systematic-fundamental-analyst.md",
-    "./Agents/independent-technical-analyst.md",
-    "./Agents/portfolio-manager.md",
-    "./Agents/financial-advisor-index-funds.md"
+  "commands": [
+    "./commands/analyze.md",
+    "./commands/snapshot.md",
+    "./commands/index-funds.md"
   ],
+  "skills": [
+    "./skills/fundamental-analysis/SKILL.md",
+    "./skills/technical-analysis/SKILL.md",
+    "./skills/portfolio-management/SKILL.md",
+    "./skills/market-snapshot/SKILL.md",
+    "./skills/index-fund-advisory/SKILL.md"
+  ],
+  "mcp_config": "./.mcp.json",
   "repository": "https://github.com/joaroo/llm-stock-analysis",
   "license": "MIT"
 }

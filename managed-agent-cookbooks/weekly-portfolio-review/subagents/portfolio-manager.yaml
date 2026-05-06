@@ -1,0 +1,34 @@
+name: portfolio-manager
+description: |
+  Investment Committee Chairman. Synthesizes fundamental and technical analyst reports
+  into final allocation decisions. Calculates regime-weighted combined scores, reconciles
+  analyst disagreements, handles binary events, and produces an actionable executive summary.
+  WRITE agent — the only subagent with permission to send notifications (chat or email).
+
+permissions:
+  read_only: false
+  write: true
+  write_scope:
+    - "${NOTIFICATION_MCP_TOOL}"
+
+tools:
+  - mcp__gemini__gemini_generate
+  - mcp__gemini__gemini_list_models
+  - "${NOTIFICATION_MCP_TOOL}"
+
+data_connector: market-data
+notification_connector: notifications
+model: gemini-3-flash-preview
+search: true
+
+skill: ../../skills/portfolio-management/SKILL.md
+
+inputs:
+  fundamental_report: "from:fundamental-analyst"
+  technical_report: "from:technical-analyst"
+
+output_format: full-executive-summary-markdown
+
+constraints:
+  requires_both_analyst_reports: true
+  sends_notification_on_completion: true

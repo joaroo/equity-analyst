@@ -1,0 +1,67 @@
+name: weekly-portfolio-review
+description: |
+  Full weekly stock analysis pipeline. Orchestrates parallel setup (portfolio extraction +
+  market snapshot), followed by sequential fundamental analysis, technical analysis,
+  portfolio management decisions, and notification delivery.
+version: "2.0"
+trigger: "command:/analyze"
+
+pipeline:
+  phase_0_parallel:
+    description: "Portfolio extraction + market snapshot run simultaneously"
+    steps:
+      - subagent: portfolio-extractor
+        task: extract-portfolio
+      - subagent: market-snapshot
+
+  phase_1:
+    description: "Fundamental analysis — requires both Phase 0 outputs"
+    depends_on: [phase_0_parallel]
+    steps:
+      - subagent: fundamental-analyst
+        inputs:
+          portfolio_json: "from:portfolio-extractor.extract-portfolio"
+          market_context: "from:market-snapshot"
+
+  phase_2:
+    description: "Technical analysis — requires fundamental report + market context"
+    depends_on: [phase_1]
+    steps:
+      - subagent: technical-analyst
+        inputs:
+          fundamental_report: "from:fundamental-analyst"
+          market_context: "from:market-snapshot"
+          portfolio_json: "from:portfolio-extractor.extract-portfolio"
+
+  phase_3:
+    description: "Portfolio manager decisions — requires both analyst reports"
+    depends_on: [phase_2]
+    steps:
+      - subagent: portfolio-manager
+        inputs:
+          fundamental_report: "from:fundamental-analyst"
+          technical_report: "from:technical-analyst"
+
+  phase_4:
+    description: "Notification formatting and delivery"
+    depends_on: [phase_3]
+    steps:
+      - subagent: portfolio-extractor
+        task: format-notification
+        inputs:
+          report: "from:portfolio-manager"
+
+notifications:
+  connector: notifications
+  milestones:
+    - after: phase_0_parallel
+      message: "🔍 Step 0 done. Running fundamental analysis..."
+    - after: phase_1
+      message: "📊 Fundamental analysis done. Running technical analysis..."
+    - after: phase_2
+      message: "📈 Technical analysis done. Portfolio manager deciding..."
+    - after: phase_3
+      message: "✅ Analysis complete. Formatting final report..."
+
+error_handling:
+  on_failure: "send error notification via notifications connector (phase name + error message), then halt pipeline"

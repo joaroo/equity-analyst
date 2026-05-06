@@ -1,0 +1,30 @@
+name: fundamental-analyst
+description: |
+  Performs systematic fundamental analysis: market regime classification, new opportunity
+  discovery, scoring of existing holdings and watchlist, and allocation recommendations
+  with fractional share calculations.
+  Read-only — no writes, no notifications.
+
+permissions:
+  read_only: true
+  write: false
+
+tools:
+  - mcp__gemini__gemini_generate
+  - mcp__gemini__gemini_list_models
+
+data_connector: market-data
+model: gemini-3-flash-preview
+search: true
+
+skill: ../../skills/fundamental-analysis/SKILL.md
+
+inputs:
+  portfolio_json: "from:portfolio-extractor.extract-portfolio"
+  market_context: "from:market-snapshot"
+
+output_format: markdown-report + analysis-json-block
+
+constraints:
+  requires_market_context_block: true
+  skip_macro_searches_when_context_present: true

@@ -1,0 +1,29 @@
+name: advisor
+description: |
+  Monthly index fund portfolio analyst. Researches current fund performance, market
+  conditions, allocation appropriateness, rebalancing needs, and 3–6 month outlook
+  for tax-advantaged accounts (401k, IRA, ISA, pension).
+  Read-only — no writes, no notifications.
+
+permissions:
+  read_only: true
+  write: false
+
+tools:
+  - mcp__gemini__gemini_generate
+  - mcp__gemini__gemini_list_models
+
+data_connector: market-data
+model: gemini-3-flash-preview
+search: true
+
+skill: ../../skills/index-fund-advisory/SKILL.md
+
+inputs:
+  holdings: "from:user-input"
+
+output_format: 5-section-markdown-report
+
+constraints:
+  no_stock_picking_scoring: true
+  use_fund_native_currencies: true

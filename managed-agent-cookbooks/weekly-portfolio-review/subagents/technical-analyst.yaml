@@ -1,0 +1,32 @@
+name: technical-analyst
+description: |
+  Performs independent technical analysis on all stocks from the fundamental report.
+  Evaluates chart setups, momentum, support/resistance, binary event risks, and entry timing.
+  Can AGREE, MODIFY, or DISAGREE with fundamental analyst per stock.
+  Read-only — no writes, no notifications.
+
+permissions:
+  read_only: true
+  write: false
+
+tools:
+  - mcp__gemini__gemini_generate
+  - mcp__gemini__gemini_list_models
+
+data_connector: market-data
+model: gemini-3-flash-preview
+search: true
+
+skill: ../../skills/technical-analysis/SKILL.md
+
+inputs:
+  fundamental_report: "from:fundamental-analyst"
+  market_context: "from:market-snapshot"
+  portfolio_json: "from:portfolio-extractor.extract-portfolio"
+
+output_format: markdown-report + technical-json-block
+
+constraints:
+  requires_fundamental_report: true
+  skip_macro_searches_when_context_present: true
+  must_analyze_all_stocks_in_fundamental_report: true
