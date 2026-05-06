@@ -1,169 +1,216 @@
-# equity-analyst
+<div align="center">
 
-AI-powered stock portfolio analysis as a Claude Code plugin. Structured with skill files, governed data connectors, permission-bounded subagents, and managed agent templates.
+<img src="assets/banner.png" alt="equity-analyst banner" width="100%" />
+
+<br/>
+
+**AI-powered stock portfolio analysis as a Claude Code plugin.**  
+Skill files · Governed connectors · Permission-bounded subagents · Managed agent templates
+
+<br/>
+
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-Plugin-blueviolet?style=flat-square)](https://claude.ai/code)
+[![Gemini](https://img.shields.io/badge/Market%20Data-Gemini-4285F4?style=flat-square)](connectors/gemini/CONNECTOR.md)
+[![Ollama](https://img.shields.io/badge/Local%20Inference-Ollama-white?style=flat-square)](connectors/ollama/CONNECTOR.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+
+</div>
+
+---
 
 ## Installation
 
 ```bash
+# Local
 claude --plugin-dir /path/to/equity-analyst
 ```
 
-Once published:
 ```bash
+# Once published
 claude plugin install equity-analyst@joaroo
 ```
 
+---
+
 ## Commands
 
-### `/analyze`
-Full weekly portfolio analysis pipeline. Runs market snapshot, portfolio extraction, and catalyst calendar in parallel, then sequences fundamental analysis → technical analysis → portfolio management → notification delivery.
+| Command | Description |
+|---------|-------------|
+| `/analyze` | Full weekly pipeline — market snapshot + fundamentals + technicals + portfolio decisions |
+| `/snapshot` | Market regime only — RISK-ON / TRANSITIONAL / RISK-OFF as compact JSON |
+| `/index-funds` | Monthly index fund analysis — performance, allocation, rebalancing |
+| `/earnings-preview TICKER` | Pre-earnings — consensus estimates, scenarios, options-implied move |
+| `/earnings-review TICKER` | Post-earnings — beat/miss table, guidance, thesis impact, action |
+| `/catalyst-calendar` | 4-week event scan — earnings, FDA, FOMC, HIGH/MEDIUM/LOW risk tiers |
+| `/valuation TICKER` | Peer comps + DCF → intrinsic value range, Cheap / Fair / Expensive verdict |
 
-**Provide:** Portfolio holdings (with buy-in prices), watch list, available cash and currency.
+---
 
-### `/snapshot`
-Fetch current market conditions only. Returns regime classification (RISK-ON / TRANSITIONAL / RISK-OFF) and macro context as compact JSON. No portfolio data needed.
-
-### `/index-funds`
-Monthly analysis of an index fund portfolio (401k, IRA, ISA, pension). Researches fund performance vs benchmarks, allocation appropriateness, and rebalancing recommendations.
-
-**Provide:** Fund tickers and allocation percentages.
-
-### `/earnings-preview TICKER`
-Pre-earnings analysis for any stock. Fetches consensus estimates, builds bull/base/bear scenarios, calculates options-implied move, reviews last 4 quarters of earnings reactions, and gives a positioning recommendation (Enter Before / Wait for Result / Avoid).
-
-### `/earnings-review TICKER`
-Post-earnings analysis after a company has reported. Fetches actuals vs. estimates, guidance changes, analyst reactions (48h), assesses thesis impact (Strengthened / Neutral / Weakened), updates fundamental score, and recommends Hold / Add / Trim / Exit.
-
-### `/catalyst-calendar`
-Scans all holdings and watchlist stocks for upcoming binary events over the next 4 weeks (earnings, FDA dates, product launches, FOMC, major data releases). Returns a structured event calendar with HIGH / MEDIUM / LOW risk tiers and a portfolio-level positioning recommendation.
-
-**Provide:** Portfolio holdings and watchlist (or full portfolio JSON).
-
-### `/valuation TICKER`
-Quick valuation sanity check. Builds a peer comps table (4–5 comparable companies across EV/EBITDA, P/E, EV/Revenue, P/S) and a simplified 3-scenario DCF (bull/base/bear). Returns an intrinsic value range and a **Cheap / Fair / Expensive** verdict.
-
-## Pipeline (`/analyze`)
+## Pipeline
 
 ```
 User Input
     │
-    ├── portfolio-extractor (Ollama)   ─── Phase 0 (parallel)
-    ├── market-snapshot (Gemini)       ───┤
-    └── catalyst-scanner (Gemini)      ───┘
-              │
-    fundamental-analyst (Gemini)       ─── Phase 1
-              │
-    technical-analyst (Gemini)         ─── Phase 2
-              │
-    portfolio-manager (Gemini + notify)─── Phase 3
-              │
-    format-notification (Ollama)       ─── Phase 4
-              │
-    Notification delivery
+    ├── portfolio-extractor (Ollama)    ──┐
+    ├── market-snapshot    (Gemini)     ──┤  Phase 0 — parallel
+    └── catalyst-scanner   (Gemini)    ──┘
+                │
+    fundamental-analyst    (Gemini)        Phase 1
+                │
+    technical-analyst      (Gemini)        Phase 2
+                │
+    portfolio-manager      (Gemini)        Phase 3
+                │
+    format-notification    (Ollama)        Phase 4
+                │
+          Notification delivery
 ```
 
-**Subagent permission boundaries:**
+**Subagent permission boundaries**
 
-| Subagent | Access | Data connector |
-|----------|--------|----------------|
-| portfolio-extractor | read-only | Ollama (local inference) |
-| market-snapshot | read-only | Gemini search |
-| catalyst-scanner | read-only | Gemini search |
-| fundamental-analyst | read-only | Gemini search |
-| technical-analyst | read-only | Gemini search |
-| portfolio-manager | **write** (notify only) | Gemini search + notifications |
+| Subagent | Access | Connector |
+|----------|--------|-----------|
+| `portfolio-extractor` | read-only | `local-inference` (Ollama) |
+| `market-snapshot` | read-only | `market-data` (Gemini) |
+| `catalyst-scanner` | read-only | `market-data` (Gemini) |
+| `fundamental-analyst` | read-only | `market-data` (Gemini) |
+| `technical-analyst` | read-only | `market-data` (Gemini) |
+| `portfolio-manager` | **write** — notify only | `market-data` + `notifications` |
 
-Only `portfolio-manager` can trigger notifications. Analyst subagents have no write access.
+Only `portfolio-manager` can trigger notifications. All analyst subagents are read-only.
+
+---
 
 ## Analysis Capabilities
 
-**Market regime classification** — RISK-ON / TRANSITIONAL / RISK-OFF based on S&P 500 vs MAs, VIX level, sector leadership, and Fed stance. All downstream scoring weights adapt to the classified regime.
+<details>
+<summary><strong>Market regime classification</strong></summary>
 
-**Fundamental analysis** — New opportunity discovery (mandatory 3–5 new stocks per run), existing holdings scoring, watch list evaluation, fractional share position sizing. Regime-adjusted deployment targets (70–100% in Risk-On, 30–50% in Risk-Off).
+RISK-ON / TRANSITIONAL / RISK-OFF based on S&P 500 vs moving averages, VIX level, sector leadership, and Fed stance. All downstream scoring weights adapt to the classified regime — deployment targets range from 70–100% cash deployment in Risk-On to 30–50% in Risk-Off.
 
-**Technical analysis** — Chart setup, momentum (RSI/MACD/volume), support/resistance, earnings proximity risk, entry quality scoring. Binary event handling: earnings within 3 days scores as `timing: 3–4/10` with a separate flag — not a global score collapse.
+</details>
 
-**Earnings preview** — Pre-earnings consensus estimates, bull/base/bear scenarios, options-implied move, last 4 quarters of historical reactions, and positioning recommendation.
+<details>
+<summary><strong>Fundamental analysis</strong></summary>
 
-**Earnings review** — Post-earnings beat/miss table, guidance assessment, analyst reactions (48h), thesis impact (Strengthened / Neutral / Weakened), updated fundamental score, and action recommendation.
+Mandatory discovery of 3–5 new stocks per run. Scores existing holdings and watchlist on a 1–10 scale. Regime-adjusted deployment targets and fractional share position sizing.
 
-**Catalyst calendar** — 4-week forward event scan across all holdings and watchlist: earnings, FDA dates, FOMC, product launches. HIGH / MEDIUM / LOW risk tiers. Fed into `/analyze` Phase 0 so `portfolio-manager` gets pre-fetched event context.
+</details>
 
-**Valuation** — Peer comps (4–5 companies, multiple metrics) + simplified 3-scenario DCF → intrinsic value range and Cheap / Fair / Expensive verdict.
+<details>
+<summary><strong>Technical analysis</strong></summary>
 
-**Portfolio management** — Regime-weighted combined scores `(Fund × weight) + (Tech × weight)`, analyst disagreement resolution, binary event position sizing framework, P&L-tiered hold/trim/add/exit logic, cash allocation philosophy.
+Chart setup (price vs 20/50/200-day MAs), momentum (RSI, MACD, volume), support/resistance levels, entry quality scoring. Binary event handling: earnings within 3 days scores `timing: 3–4/10` with a separate flag — not a global score collapse.
 
-**Combined score weights by stock type and regime:**
+Formula: `(Trend × 0.30) + (Momentum × 0.25) + (Entry × 0.30) + (Timing × 0.15)`
+
+</details>
+
+<details>
+<summary><strong>Portfolio management — combined score weights</strong></summary>
 
 | Stock Type | Risk-On | Transitional | Risk-Off |
 |------------|---------|--------------|----------|
 | Growth | 35% Fund / 65% Tech | 45% / 55% | 60% / 40% |
 | Value | 55% Fund / 45% Tech | 60% / 40% | 70% / 30% |
 
-## Currency
+Decisions: Strong Buy · Binary Event Special Case · Conditional · Skip. P&L-tiered hold/trim/add/exit logic.
 
-All analysis uses each instrument's **native trading currency** — USD for NYSE/NASDAQ, GBP for LSE, EUR for Euronext, JPY for TSE, AUD for ASX, CAD for TSX. Mixed-currency portfolios are supported; each position is shown in its own currency.
+</details>
 
-## Data Sources
+<details>
+<summary><strong>Earnings preview</strong></summary>
 
-Governed in `.mcp.json`:
+Consensus estimates (EPS, revenue, key sector metrics), bull/base/bear scenario framework, options-implied move, last 4 quarters of historical earnings reactions. Output: Enter Before / Wait for Result / Avoid.
 
-| Alias | Provider | Purpose | Docs |
-|-------|----------|---------|------|
-| `market-data` | Gemini | Real-time market data via Search Grounding | `connectors/gemini/` |
-| `local-inference` | Ollama | Portfolio extraction, message formatting | `connectors/ollama/` |
-| `notifications` | Any (Slack reference impl.) | Progress updates and report delivery | `connectors/slack/` |
+</details>
 
-Skills and commands reference connector aliases only. Real tool names (`mcp__gemini__*`, `mcp__ollama__*`, `mcp__slack__*`) are declared in subagent YAMLs and resolved via `.mcp.json`.
+<details>
+<summary><strong>Earnings review</strong></summary>
 
-See `.mcp.json.example` for a complete wiring of all three connectors with Slack as the notification provider.
+Actuals vs estimates, guidance assessment (Raised / Maintained / Lowered / Withdrawn), analyst reactions within 48h, thesis impact (Strengthened / Neutral / Weakened), updated fundamental score, action recommendation (Hold / Add / Trim / Exit).
 
-### Notification Provider
+</details>
 
-Set `NOTIFICATION_MCP_TOOL` to your provider's send tool:
+<details>
+<summary><strong>Catalyst calendar</strong></summary>
 
-| Provider | Value |
-|----------|-------|
+4-week forward scan across all holdings and watchlist. Event types: earnings, FDA PDUFA, product launches, FOMC, CPI, NFP. Risk tiers: HIGH (binary outcome) · MEDIUM (directional) · LOW (sentiment). High-risk windows flagged when 2+ HIGH events fall within 5 days. Fed into `/analyze` Phase 0 so `portfolio-manager` receives pre-fetched event context.
+
+</details>
+
+<details>
+<summary><strong>Valuation</strong></summary>
+
+Peer comps table (4–5 comparable companies): EV/EBITDA, P/E, EV/Revenue, P/S. Simplified 3-scenario DCF (bull/base/bear, 10% WACC, 3% terminal growth). Output: intrinsic value range, current price vs central estimate, Cheap / Fair / Expensive verdict.
+
+</details>
+
+---
+
+## Data Connectors
+
+Governed in `.mcp.json`. Skills reference aliases only — real tool names live in subagent YAMLs.
+
+| Alias | Provider | Purpose | Setup |
+|-------|----------|---------|-------|
+| `market-data` | Gemini (Search Grounding) | Prices, ratings, earnings, macro | [connectors/gemini/](connectors/gemini/CONNECTOR.md) |
+| `local-inference` | Ollama | Portfolio extraction, formatting | [connectors/ollama/](connectors/ollama/CONNECTOR.md) |
+| `notifications` | Configurable | Progress updates, report delivery | [connectors/slack/](connectors/slack/CONNECTOR.md) |
+
+See [`.mcp.json.example`](.mcp.json.example) for a complete Gemini + Ollama + Slack wiring.
+
+**Notification provider** — set `NOTIFICATION_MCP_TOOL` to your send tool:
+
+| Provider | `NOTIFICATION_MCP_TOOL` |
+|----------|------------------------|
 | Slack | `mcp__slack__slack_post_message` |
 | Telegram | `mcp__telegram__send_message` |
 | Gmail | `mcp__gmail__send_email` |
 
+---
+
+## Currency
+
+All analysis uses each instrument's native trading currency — USD (NYSE/NASDAQ), GBP (LSE), EUR (Euronext), JPY (TSE), AUD (ASX), CAD (TSX). Mixed-currency portfolios are fully supported.
+
+---
+
 ## Project Structure
 
 ```
-.claude-plugin/
-└── plugin.json                          # Plugin manifest (v2.0.0)
+.claude-plugin/plugin.json               # Plugin manifest (v2.0.0)
 .mcp.json                                # Connector alias registry
 .mcp.json.example                        # Concrete wiring: Gemini + Ollama + Slack
 connectors/
-├── gemini/CONNECTOR.md                  # market-data setup (Google AI API key, MCP server)
-├── ollama/CONNECTOR.md                  # local-inference setup (local install, model selection)
-└── slack/CONNECTOR.md                   # notifications reference impl (Slack app, bot token)
+├── gemini/CONNECTOR.md                  # market-data — Google AI API key, MCP server
+├── ollama/CONNECTOR.md                  # local-inference — local install, model selection
+└── slack/CONNECTOR.md                   # notifications reference impl
 commands/
 ├── analyze.md                           # /analyze — full weekly pipeline
-├── snapshot.md                          # /snapshot — market conditions
+├── snapshot.md                          # /snapshot — market regime
 ├── index-funds.md                       # /index-funds — 401k/IRA analysis
 ├── earnings-preview.md                  # /earnings-preview TICKER
 ├── earnings-review.md                   # /earnings-review TICKER
 ├── catalyst-calendar.md                 # /catalyst-calendar
 └── valuation.md                         # /valuation TICKER
 skills/
-├── fundamental-analysis/SKILL.md        # Fundamental analysis logic
-├── technical-analysis/SKILL.md          # Technical analysis logic
-├── portfolio-management/SKILL.md        # Portfolio decision logic
-├── market-snapshot/SKILL.md             # Market data fetch logic
-├── index-fund-advisory/SKILL.md         # Index fund advisory logic
-├── earnings-preview/SKILL.md            # Pre-earnings analysis logic
-├── earnings-review/SKILL.md             # Post-earnings analysis logic
-├── catalyst-calendar/SKILL.md           # Event risk scanning logic
-└── valuation/SKILL.md                   # Comps + DCF valuation logic
+├── fundamental-analysis/SKILL.md
+├── technical-analysis/SKILL.md
+├── portfolio-management/SKILL.md
+├── market-snapshot/SKILL.md
+├── index-fund-advisory/SKILL.md
+├── earnings-preview/SKILL.md
+├── earnings-review/SKILL.md
+├── catalyst-calendar/SKILL.md
+└── valuation/SKILL.md
 managed-agent-cookbooks/
 ├── weekly-portfolio-review/             # /analyze pipeline (6 subagents)
-├── index-fund-advisor/                  # /index-funds pipeline
-├── earnings-preview/                    # /earnings-preview pipeline
-├── earnings-review/                     # /earnings-review pipeline
-├── catalyst-calendar/                   # /catalyst-calendar pipeline
-└── valuation/                           # /valuation pipeline
+├── index-fund-advisor/
+├── earnings-preview/
+├── earnings-review/
+├── catalyst-calendar/
+└── valuation/
 ```
 
-Skills are the source of truth for all analytical logic. Commands are thin entry points that reference skills. Subagent YAMLs declare permissions and tool access. The managed agent cookbooks are deployment templates for the Anthropic Managed Agents API.
+Skills are the source of truth for all analytical logic. Commands are thin entry points. Subagent YAMLs declare permissions and tool access. Cookbooks are deployment templates for the Anthropic Managed Agents API.
