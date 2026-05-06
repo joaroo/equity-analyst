@@ -108,20 +108,37 @@ All analysis uses each instrument's **native trading currency** — USD for NYSE
 
 Governed in `.mcp.json`:
 
-| Connector | Provider | Purpose |
-|-----------|----------|---------|
-| `market-data` | Gemini (search: true) | All real-time market data |
-| `local-inference` | Ollama | Portfolio extraction, notification formatting |
-| `notifications` | `${NOTIFICATION_MCP_TOOL}` | Progress updates and report delivery |
+| Alias | Provider | Purpose | Docs |
+|-------|----------|---------|------|
+| `market-data` | Gemini | Real-time market data via Search Grounding | `connectors/gemini/` |
+| `local-inference` | Ollama | Portfolio extraction, message formatting | `connectors/ollama/` |
+| `notifications` | Any (Slack reference impl.) | Progress updates and report delivery | `connectors/slack/` |
 
-Set `NOTIFICATION_MCP_TOOL` to any chat or email MCP tool (Telegram, Slack, email, etc.).
+Skills and commands reference connector aliases only. Real tool names (`mcp__gemini__*`, `mcp__ollama__*`, `mcp__slack__*`) are declared in subagent YAMLs and resolved via `.mcp.json`.
+
+See `.mcp.json.example` for a complete wiring of all three connectors with Slack as the notification provider.
+
+### Notification Provider
+
+Set `NOTIFICATION_MCP_TOOL` to your provider's send tool:
+
+| Provider | Value |
+|----------|-------|
+| Slack | `mcp__slack__slack_post_message` |
+| Telegram | `mcp__telegram__send_message` |
+| Gmail | `mcp__gmail__send_email` |
 
 ## Project Structure
 
 ```
 .claude-plugin/
 └── plugin.json                          # Plugin manifest (v2.0.0)
-.mcp.json                                # Data connector registry
+.mcp.json                                # Connector alias registry
+.mcp.json.example                        # Concrete wiring: Gemini + Ollama + Slack
+connectors/
+├── gemini/CONNECTOR.md                  # market-data setup (Google AI API key, MCP server)
+├── ollama/CONNECTOR.md                  # local-inference setup (local install, model selection)
+└── slack/CONNECTOR.md                   # notifications reference impl (Slack app, bot token)
 commands/
 ├── analyze.md                           # /analyze — full weekly pipeline
 ├── snapshot.md                          # /snapshot — market conditions

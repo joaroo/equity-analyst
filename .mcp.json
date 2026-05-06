@@ -4,24 +4,31 @@
       "primary": "mcp__gemini__gemini_generate",
       "search": true,
       "model": "gemini-3-flash-preview",
-      "fallback": "WebFetch",
-      "purpose": "All real-time market data: prices, analyst ratings, earnings dates, macro indicators, sector performance"
+      "purpose": "All real-time market data: prices, analyst ratings, earnings dates, macro indicators, sector performance",
+      "docs": "connectors/gemini/CONNECTOR.md"
     },
     "local-inference": {
       "primary": "mcp__ollama__ollama_generate",
       "model_list": "mcp__ollama__ollama_list_models",
       "model_selection": "fastest-small",
-      "purpose": "Portfolio text extraction and notification message formatting"
+      "purpose": "Portfolio text extraction and notification message formatting",
+      "docs": "connectors/ollama/CONNECTOR.md"
     },
     "notifications": {
-      "connector": "${NOTIFICATION_MCP_TOOL}",
-      "purpose": "Progress updates and final report delivery via any configured chat or email channel (e.g. Telegram, Slack, email). Set NOTIFICATION_MCP_TOOL to the MCP tool name for your provider."
+      "primary": "${NOTIFICATION_MCP_TOOL}",
+      "purpose": "Progress updates and final report delivery. Set NOTIFICATION_MCP_TOOL to your provider's tool name (e.g. mcp__slack__slack_post_message).",
+      "docs": "connectors/slack/CONNECTOR.md",
+      "example_providers": {
+        "slack": "mcp__slack__slack_post_message",
+        "telegram": "mcp__telegram__send_message",
+        "gmail": "mcp__gmail__send_email"
+      }
     }
   },
-  "priority_hierarchy": ["market-data", "WebFetch"],
+  "example_config": ".mcp.json.example",
   "anti_patterns": [
     "Do not use WebSearch or WebFetch for market data — route through market-data connector",
-    "Do not hardcode model names — use model_selection alias from local-inference connector",
+    "Do not hardcode model names in skills or commands — use connector aliases only",
     "Do not call the notifications connector from read-only subagents — only portfolio-manager may write"
   ]
 }

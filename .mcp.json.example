@@ -1,0 +1,41 @@
+{
+  "_comment": "Example connector wiring: Gemini (market-data) + Ollama (local-inference) + Slack (notifications). Copy relevant sections into ~/.claude.json or .claude/settings.json. Set environment variables before running.",
+
+  "mcpServers": {
+    "gemini": {
+      "_connector": "market-data",
+      "_docs": "connectors/gemini/CONNECTOR.md",
+      "command": "npx",
+      "args": ["-y", "gemini-mcp-server"],
+      "env": {
+        "GOOGLE_API_KEY": "${GOOGLE_API_KEY}"
+      }
+    },
+
+    "ollama": {
+      "_connector": "local-inference",
+      "_docs": "connectors/ollama/CONNECTOR.md",
+      "command": "npx",
+      "args": ["-y", "mcp-server-ollama"],
+      "env": {
+        "OLLAMA_BASE_URL": "http://localhost:11434"
+      }
+    },
+
+    "slack": {
+      "_connector": "notifications",
+      "_docs": "connectors/slack/CONNECTOR.md",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-slack"],
+      "env": {
+        "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}",
+        "SLACK_TEAM_ID": "${SLACK_TEAM_ID}"
+      }
+    }
+  },
+
+  "env": {
+    "NOTIFICATION_MCP_TOOL": "mcp__slack__slack_post_message",
+    "SLACK_CHANNEL_ID": "${SLACK_CHANNEL_ID}"
+  }
+}
