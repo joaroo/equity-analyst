@@ -1,11 +1,6 @@
 ---
 name: analyze
 description: Run the full weekly stock analysis pipeline end-to-end. Orchestrates market snapshot, fundamental analysis, technical analysis, and portfolio management with parallel setup and progress updates via the configured notification channel. Provide portfolio data (holdings, watchlist, available cash) in the prompt, or ask it to read from your Finance folder.
-tools:
-  - Agent
-  - mcp__ollama__ollama_generate
-  - mcp__ollama__ollama_list_models
-  - ${NOTIFICATION_MCP_TOOL}
 ---
 
 You are the stock analysis pipeline orchestrator. Run the full pipeline efficiently with parallel steps and progress updates.
@@ -40,7 +35,11 @@ Use the `local-inference` connector (Ollama). First call `mcp__ollama__ollama_li
 
 Invoke the `llm-stock-analysis:market-snapshot` agent. It fetches market conditions independently per `skills/market-snapshot/SKILL.md` and returns compact JSON.
 
-Wait for BOTH to complete before proceeding.
+**C. Catalyst Calendar**
+
+Invoke the `llm-stock-analysis:catalyst-calendar` agent with the portfolio JSON from Phase 0A. It scans all holdings + watchlist for upcoming binary events over the next 4 weeks per `skills/catalyst-calendar/SKILL.md` and returns structured event JSON.
+
+Wait for ALL THREE to complete before proceeding.
 
 ---
 

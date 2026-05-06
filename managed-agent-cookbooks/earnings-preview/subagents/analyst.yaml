@@ -1,0 +1,24 @@
+name: earnings-preview-analyst
+description: |
+  Fetches consensus estimates, historical earnings reactions, options-implied move,
+  and builds a bull/base/bear scenario framework for any stock ahead of earnings.
+  Read-only — no writes, no notifications.
+
+permissions:
+  read_only: true
+  write: false
+
+tools:
+  - mcp__gemini__gemini_generate
+  - mcp__gemini__gemini_list_models
+
+data_connector: market-data
+model: gemini-3-flash-preview
+search: true
+
+skill: ../../skills/earnings-preview/SKILL.md
+
+inputs:
+  ticker: "from:user-input"
+
+output_format: structured-markdown-report

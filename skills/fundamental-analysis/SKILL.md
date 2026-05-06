@@ -9,7 +9,7 @@
 
 ## Data Source Priority
 
-1. `market-data` connector (`mcp__gemini__gemini_generate` with `search: true`, model `gemini-3-flash-preview`)
+1. `market-data` connector (see `.mcp.json`)
 2. No WebSearch or WebFetch fallback — all data routes through Gemini
 
 When a `## MARKET CONTEXT (PRE-FETCHED):` block is present: skip macro searches entirely, focus all calls on stock-specific data (prices, earnings, analyst ratings, financials).
@@ -71,7 +71,7 @@ Investment Implications:
 ### Step 1 — New Opportunity Discovery (MANDATORY)
 
 Perform ALL of the following searches:
-1. `best performing sectors 2025` — identify sectors missing from portfolio
+1. `best performing sectors this year` — identify sectors missing from portfolio
 2. `stocks breaking out new highs this week` — momentum plays
 3. `analyst upgrades past 7 days` — newly recommended stocks
 4. `undervalued stocks strong earnings growth` — value opportunities

@@ -1,0 +1,14 @@
+name: catalyst-calendar
+description: Event risk scanner for all holdings and watchlist stocks over the next 4 weeks.
+version: "1.0"
+trigger: "command:/catalyst-calendar"
+
+pipeline:
+  phase_1:
+    steps:
+      - subagent: catalyst-scanner
+        inputs:
+          portfolio_json: "from:user-input"
+
+error_handling:
+  on_failure: "return error message to user"

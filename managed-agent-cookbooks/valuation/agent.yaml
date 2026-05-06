@@ -1,0 +1,14 @@
+name: valuation
+description: Quick valuation pipeline — peer comps + simplified DCF for a single ticker.
+version: "1.0"
+trigger: "command:/valuation"
+
+pipeline:
+  phase_1:
+    steps:
+      - subagent: valuation-analyst
+        inputs:
+          ticker: "from:user-input"
+
+error_handling:
+  on_failure: "return error message to user"

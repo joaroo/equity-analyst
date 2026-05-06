@@ -1,0 +1,29 @@
+name: catalyst-scanner
+description: |
+  Scans all portfolio holdings and watchlist tickers for upcoming binary events
+  over the next 4 weeks. Returns structured JSON event calendar with risk tiers.
+  Read-only — no writes, no notifications.
+  Runs in parallel with market-snapshot in Phase 0.
+
+permissions:
+  read_only: true
+  write: false
+
+tools:
+  - mcp__gemini__gemini_generate
+  - mcp__gemini__gemini_list_models
+
+data_connector: market-data
+model: gemini-3-flash-preview
+search: true
+
+skill: ../../skills/catalyst-calendar/SKILL.md
+
+inputs:
+  portfolio_json: "from:portfolio-extractor.extract-portfolio"
+
+output_format: json-block
+
+constraints:
+  batch_tickers_per_call: 5
+  horizon_days: 28

@@ -8,7 +8,7 @@
 
 ## Data Source Priority
 
-1. `market-data` connector (`mcp__gemini__gemini_generate` with `search: true`, model `gemini-3-flash-preview`)
+1. `market-data` connector (see `.mcp.json`)
 2. No fallback — market snapshot requires live search data
 
 Combine into **2–3 Gemini calls maximum** to avoid redundancy.

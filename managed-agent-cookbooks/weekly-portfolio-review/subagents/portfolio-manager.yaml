@@ -26,6 +26,7 @@ skill: ../../skills/portfolio-management/SKILL.md
 inputs:
   fundamental_report: "from:fundamental-analyst"
   technical_report: "from:technical-analyst"
+  catalyst_calendar: "from:catalyst-scanner"
 
 output_format: full-executive-summary-markdown
 

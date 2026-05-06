@@ -1,0 +1,24 @@
+name: earnings-review-analyst
+description: |
+  Fetches post-earnings actuals vs. estimates, guidance changes, analyst reactions,
+  assesses thesis impact, and produces an updated fundamental score + action recommendation.
+  Read-only — no writes, no notifications.
+
+permissions:
+  read_only: true
+  write: false
+
+tools:
+  - mcp__gemini__gemini_generate
+  - mcp__gemini__gemini_list_models
+
+data_connector: market-data
+model: gemini-3-flash-preview
+search: true
+
+skill: ../../skills/earnings-review/SKILL.md
+
+inputs:
+  ticker: "from:user-input"
+
+output_format: structured-markdown-report

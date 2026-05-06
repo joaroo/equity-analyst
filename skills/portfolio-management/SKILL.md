@@ -4,14 +4,16 @@
 
 - Invoked after both fundamental-analysis and technical-analysis skills have completed
 - Requires: fundamental analyst report (with `<analysis-json>` block) + technical analyst report (with `<technical-json>` block)
+- Optional: catalyst calendar JSON from catalyst-calendar skill — if present, use it for binary event context instead of searching individually per stock
 - If structured JSON blocks are missing, extract scores from free-text reports
 - Do NOT invoke without both analyst reports
 
 ## Data Source Priority
 
 1. Extract scores from `<analysis-json>` and `<technical-json>` blocks if present
-2. If blocks missing: parse free-text reports for scores
-3. `market-data` connector (`mcp__gemini__gemini_generate` with `search: true`) — for supplemental price lookups only
+2. Extract binary event data from catalyst calendar JSON if present (skip per-stock earnings searches)
+3. If blocks missing: parse free-text reports for scores
+4. `market-data` connector (see `.mcp.json`) — for supplemental price lookups only
 
 ## Workflow Steps
 

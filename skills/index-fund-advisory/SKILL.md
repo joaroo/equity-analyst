@@ -9,7 +9,7 @@
 
 ## Data Source Priority
 
-1. `market-data` connector (`mcp__gemini__gemini_generate` with `search: true`, model `gemini-3-flash-preview`)
+1. `market-data` connector (see `.mcp.json`)
 2. No WebSearch or WebFetch fallback
 
 Search extensively for current fund performance data before making any recommendations.

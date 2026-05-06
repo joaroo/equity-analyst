@@ -1,18 +1,21 @@
 name: weekly-portfolio-review
 description: |
   Full weekly stock analysis pipeline. Orchestrates parallel setup (portfolio extraction +
-  market snapshot), followed by sequential fundamental analysis, technical analysis,
-  portfolio management decisions, and notification delivery.
+  market snapshot + catalyst calendar), followed by sequential fundamental analysis,
+  technical analysis, portfolio management decisions, and notification delivery.
 version: "2.0"
 trigger: "command:/analyze"
 
 pipeline:
   phase_0_parallel:
-    description: "Portfolio extraction + market snapshot run simultaneously"
+    description: "Portfolio extraction + market snapshot + catalyst calendar run simultaneously"
     steps:
       - subagent: portfolio-extractor
         task: extract-portfolio
       - subagent: market-snapshot
+      - subagent: catalyst-scanner
+        inputs:
+          portfolio_json: "from:portfolio-extractor.extract-portfolio"
 
   phase_1:
     description: "Fundamental analysis — requires both Phase 0 outputs"
@@ -41,6 +44,7 @@ pipeline:
         inputs:
           fundamental_report: "from:fundamental-analyst"
           technical_report: "from:technical-analyst"
+          catalyst_calendar: "from:catalyst-scanner"
 
   phase_4:
     description: "Notification formatting and delivery"

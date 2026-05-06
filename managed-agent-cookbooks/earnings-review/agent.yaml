@@ -1,0 +1,14 @@
+name: earnings-review
+description: Post-earnings analysis pipeline for a single ticker.
+version: "1.0"
+trigger: "command:/earnings-review"
+
+pipeline:
+  phase_1:
+    steps:
+      - subagent: earnings-review-analyst
+        inputs:
+          ticker: "from:user-input"
+
+error_handling:
+  on_failure: "return error message to user"

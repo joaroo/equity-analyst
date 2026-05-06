@@ -1,0 +1,29 @@
+name: valuation-analyst
+description: |
+  Pulls company financials, builds a peer comps table (4–5 comparables),
+  runs a simplified 3-scenario DCF, and produces an intrinsic value range
+  with a Cheap / Fair / Expensive verdict.
+  Read-only — no writes, no notifications.
+
+permissions:
+  read_only: true
+  write: false
+
+tools:
+  - mcp__gemini__gemini_generate
+  - mcp__gemini__gemini_list_models
+
+data_connector: market-data
+model: gemini-3-flash-preview
+search: true
+
+skill: ../../skills/valuation/SKILL.md
+
+inputs:
+  ticker: "from:user-input"
+
+output_format: structured-markdown-report
+
+constraints:
+  no_buy_sell_recommendation: true
+  output_verdict: "Cheap|Fair|Expensive"
