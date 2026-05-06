@@ -1,1 +1,14 @@
 .DS_Store
+
+# secrets and local config
+.env
+.env.*
+.env.local
+
+# spreadsheets and data exports (never commit personal financial data)
+*.xlsx
+*.xls
+*.csv
+
+# local Claude settings (belt-and-suspenders — also covered by global gitignore)
+.claude/settings.local.json
