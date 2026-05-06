@@ -1,5 +1,5 @@
 {
-  "name": "llm-stock-analysis",
+  "name": "equity-analyst",
   "description": "AI-powered stock analysis: systematic fundamental analyst, independent technical analyst, portfolio manager, and index fund advisor. Structured with skill files, governed data connectors, and managed agent templates.",
   "version": "2.0.0",
   "author": {
@@ -26,6 +26,6 @@
     "./skills/valuation/SKILL.md"
   ],
   "mcp_config": "./.mcp.json",
-  "repository": "https://github.com/joaroo/llm-stock-analysis",
+  "repository": "https://github.com/joaroo/equity-analyst",
   "license": "MIT"
 }

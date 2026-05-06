@@ -1,16 +1,16 @@
-# llm-stock-analysis
+# equity-analyst
 
 AI-powered stock portfolio analysis as a Claude Code plugin. Structured with skill files, governed data connectors, permission-bounded subagents, and managed agent templates.
 
 ## Installation
 
 ```bash
-claude --plugin-dir /path/to/llm-stock-analysis
+claude --plugin-dir /path/to/equity-analyst
 ```
 
 Once published:
 ```bash
-claude plugin install llm-stock-analysis@joaroo
+claude plugin install equity-analyst@joaroo
 ```
 
 ## Commands

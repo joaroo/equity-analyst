@@ -33,11 +33,11 @@ Use the `local-inference` connector (Ollama). First call `mcp__ollama__ollama_li
 
 **B. Market Snapshot**
 
-Invoke the `llm-stock-analysis:market-snapshot` agent. It fetches market conditions independently per `skills/market-snapshot/SKILL.md` and returns compact JSON.
+Invoke the `equity-analyst:market-snapshot` agent. It fetches market conditions independently per `skills/market-snapshot/SKILL.md` and returns compact JSON.
 
 **C. Catalyst Calendar**
 
-Invoke the `llm-stock-analysis:catalyst-calendar` agent with the portfolio JSON from Phase 0A. It scans all holdings + watchlist for upcoming binary events over the next 4 weeks per `skills/catalyst-calendar/SKILL.md` and returns structured event JSON.
+Invoke the `equity-analyst:catalyst-calendar` agent with the portfolio JSON from Phase 0A. It scans all holdings + watchlist for upcoming binary events over the next 4 weeks per `skills/catalyst-calendar/SKILL.md` and returns structured event JSON.
 
 Wait for ALL THREE to complete before proceeding.
 
@@ -47,7 +47,7 @@ Wait for ALL THREE to complete before proceeding.
 
 Send progress notification: `${NOTIFICATION_MCP_TOOL}: "🔍 Step 0 done. Running fundamental analysis..."`
 
-Invoke `llm-stock-analysis:systematic-fundamental-analyst` with:
+Invoke `equity-analyst:systematic-fundamental-analyst` with:
 - The portfolio JSON from Phase 0A
 - The market context JSON from Phase 0B labeled as `## MARKET CONTEXT (PRE-FETCHED):`
 
@@ -59,7 +59,7 @@ When complete, send: `${NOTIFICATION_MCP_TOOL}: "📊 Fundamental analysis done.
 
 ### Phase 2 — Technical Analysis
 
-Invoke `llm-stock-analysis:independent-technical-analyst` with:
+Invoke `equity-analyst:independent-technical-analyst` with:
 - The full fundamental analyst report
 - The market context JSON from Phase 0B labeled as `## MARKET CONTEXT (PRE-FETCHED):`
 - The portfolio JSON from Phase 0A
@@ -72,7 +72,7 @@ When complete, send: `${NOTIFICATION_MCP_TOOL}: "📈 Technical analysis done. P
 
 ### Phase 3 — Portfolio Decisions
 
-Invoke `llm-stock-analysis:portfolio-manager` with both analyst reports in full.
+Invoke `equity-analyst:portfolio-manager` with both analyst reports in full.
 
 Skill reference: `skills/portfolio-management/SKILL.md`
 
