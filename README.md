@@ -29,6 +29,10 @@ The plugin is built around a strict separation of concerns: nine skill files def
 ## Installation
 
 ```bash
+# Add the marketplace
+claude plugin marketplace add joaroo/equity-analyst
+
+# Install the plugin
 claude plugin install equity-analyst@joaroo
 ```
 
