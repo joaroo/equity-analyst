@@ -29,12 +29,6 @@ The plugin is built around a strict separation of concerns: nine skill files def
 ## Installation
 
 ```bash
-# Local
-claude --plugin-dir /path/to/equity-analyst
-```
-
-```bash
-# Once published
 claude plugin install equity-analyst@joaroo
 ```
 

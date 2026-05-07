@@ -1,0 +1,23 @@
+{
+  "name": "joaroo",
+  "description": "AI-powered stock portfolio analysis as a Claude Code plugin.",
+  "owner": {
+    "name": "joaroo"
+  },
+  "plugins": [
+    {
+      "name": "equity-analyst",
+      "source": "./",
+      "description": "Systematic investment research: fundamental analysis, technical analysis, portfolio management, earnings preview/review, valuation, and catalyst calendar.",
+      "version": "2.0.0",
+      "author": {
+        "name": "joaroo"
+      },
+      "homepage": "https://github.com/joaroo/equity-analyst",
+      "repository": "https://github.com/joaroo/equity-analyst",
+      "license": "MIT",
+      "keywords": ["finance", "stocks", "investing", "portfolio", "analysis", "valuation", "earnings"],
+      "category": "finance"
+    }
+  ]
+}
