@@ -22,7 +22,7 @@ Add the local plugin to OpenCode config while testing:
 
 ```jsonc
 {
-  "plugin": ["file:///Users/joaroo/Projects/llm-stock-analysis"]
+  "plugin": ["file:///absolute/path/to/equity-analyst"]
 }
 ```
 
