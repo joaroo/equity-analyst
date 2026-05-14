@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://unpkg.com/equity-analyst-opencode@latest/equity-analyst.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "preset": { "type": "string" },
+    "presets": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": { "$ref": "#/$defs/agent" }
+      }
+    },
+    "agents": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/agent" }
+    },
+    "tools": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/toolConnector" }
+    },
+    "mcp": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "agent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "oneOf": [
+            { "type": "string" },
+            {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "oneOf": [
+                  { "type": "string" },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["id"],
+                    "properties": {
+                      "id": { "type": "string" },
+                      "variant": { "type": "string" }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "variant": { "type": "string" },
+        "temperature": { "type": "number", "minimum": 0, "maximum": 2 },
+        "mcps": { "type": "array", "items": { "type": "string" } },
+        "promptAppend": { "type": "string" },
+        "disabled": { "type": "boolean" }
+      }
+    },
+    "toolConnector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mcp"],
+      "properties": {
+        "mcp": { "type": "string" },
+        "tool": { "type": "string" }
+      }
+    }
+  }
+}

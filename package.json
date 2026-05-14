@@ -1,0 +1,51 @@
+{
+  "name": "equity-analyst-opencode",
+  "version": "0.1.0",
+  "description": "Configurable OpenCode plugin for multi-agent equity analysis.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "bin": {
+    "equity-analyst-opencode": "./dist/cli/index.js"
+  },
+  "files": [
+    "dist",
+    "skills",
+    "commands",
+    "equity-analyst.schema.json",
+    "OPENCODE.md",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "bun build src/index.ts src/cli/index.ts --outdir dist --target node --format esm --external @opencode-ai/plugin --external zod && tsc --emitDeclarationOnly",
+    "typecheck": "tsc --noEmit",
+    "check": "bun run build && bun run typecheck"
+  },
+  "dependencies": {
+    "@opencode-ai/plugin": "^1.3.17",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "typescript": "^5.9.3"
+  },
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "equity-analysis",
+    "stocks",
+    "agents"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joaroo/equity-analyst.git"
+  }
+}

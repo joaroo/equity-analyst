@@ -12,3 +12,7 @@
 
 # local Claude settings (belt-and-suspenders — also covered by global gitignore)
 .claude/settings.local.json
+
+# JavaScript/OpenCode plugin build outputs
+node_modules/
+dist/
