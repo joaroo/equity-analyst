@@ -123,7 +123,11 @@ Based on all evidence, recommend one of:
 
 ## Currency Rules
 
-Show all price targets, stop levels, and position sizes in the stock's native trading currency (USD for NYSE/NASDAQ, GBP for LSE, EUR for Euronext, etc.).
+Show price targets and stop levels in the stock's native trading currency.
+
+`[CCY]` in templates means the instrument's native trading currency (SEK for Nasdaq Stockholm, NOK Oslo, DKK Copenhagen, EUR Helsinki/Xetra/Euronext, GBP/GBp London, USD US exchanges). Position sizes and allocations are in the base currency from `investor-profile.json` (SEK by default), converted with `fx`.
+
+Nordic companies often report in a different currency from their listing (e.g. EUR or USD reporting for Stockholm-listed shares): state the reporting currency of estimates and actuals separately from the share price currency.
 
 ## Output Schema
 
@@ -137,18 +141,18 @@ Show all price targets, stop levels, and position sizes in the stock's native tr
 ### Consensus Estimates
 | Metric | Consensus | High | Low | YoY Growth |
 |--------|-----------|------|-----|------------|
-| EPS | $X.XX | $X.XX | $X.XX | +X% |
-| Revenue | $XB | $XB | $XB | +X% |
+| EPS | X.XX [CCY] | X.XX [CCY] | X.XX [CCY] | +X% |
+| Revenue | XB [CCY] | XB [CCY] | XB [CCY] | +X% |
 | [Key metric] | X | X | X | +X% |
 
-**Analyst Consensus:** X% Buy / X% Hold / X% Sell | Avg Target: $XX
+**Analyst Consensus:** X% Buy / X% Hold / X% Sell | Avg Target: XX [CCY]
 
 ---
 
 ### Historical Earnings Reactions (Last 4 Quarters)
 | Quarter | EPS Beat | Rev Beat | Stock Reaction | Guidance |
 |---------|----------|----------|----------------|----------|
-| Q[X] [Year] | +$X.XX | +$XM | +X% | Raised |
+| Q[X] [Year] | +X.XX [CCY] | +XM [CCY] | +X% | Raised |
 | ... | | | | |
 
 **Beat Rate:** X/4 EPS | X/4 Revenue | **Avg Move:** ±X%
@@ -156,7 +160,7 @@ Show all price targets, stop levels, and position sizes in the stock's native tr
 ---
 
 ### Options-Implied Move
-**±X%** (= ±$X.XX per share at current price from `quotes`)
+**±X%** (= ±X.XX [CCY] per share at current price from `quotes`)
 Interpretation: [Market expects X volatility; historical average is Y]
 
 ---
@@ -182,8 +186,8 @@ Rationale: [2–3 sentences on why, referencing history + implied move + setup]
 
 If holding existing position:
 - Pre-earnings action: [Hold / Trim X% / Exit]
-- Post-beat action: [Add $X at market / Set limit at $X]
-- Post-miss action: [Cut / Hold with stop at $X]
+- Post-beat action: [Add X SEK at market / Set limit at X [CCY]]
+- Post-miss action: [Cut / Hold with stop at X [CCY]]
 ```
 
 ## Anti-Patterns

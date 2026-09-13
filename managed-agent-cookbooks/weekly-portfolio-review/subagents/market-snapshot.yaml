@@ -1,6 +1,7 @@
 name: market-snapshot
 description: |
-  Fetches current market conditions: S&P 500 levels, VIX, Fed stance, sector leadership.
+  Fetches current market conditions: OMX Stockholm 30, STOXX Europe 600 and S&P 500 trend,
+  VIX, European sector leadership, and Riksbank/ECB/Fed stance.
   Classifies market regime (RISK-ON / TRANSITIONAL / RISK-OFF).
   Returns compact JSON consumed by downstream analyst subagents.
   Read-only — no writes, no notifications.

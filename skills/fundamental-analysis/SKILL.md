@@ -10,7 +10,11 @@ description: Systematic fundamental analysis of a stock portfolio — market reg
 - Invoked after market-snapshot has run and its JSON is available in context (labeled `## MARKET CONTEXT (PRE-FETCHED):`)
 - Invoked after portfolio JSON has been extracted (holdings, watchlist, cash)
 - Do NOT invoke without portfolio data — requires at minimum holdings list and available cash
-- Do NOT re-fetch macro data (S&P, VIX, sector, Fed) if a market context block is already provided
+- Do NOT re-fetch macro data (indices, VIX, sectors, central banks) if a market context block is already provided
+
+## Investor Context
+
+Read `investor-profile.json` first: base currency, account type (ISK by default), home market, benchmarks and position-sizing percentages. Report portfolio-level figures in the base currency and apply the account rules below.
 
 ## Data Source Priority
 
@@ -39,7 +43,7 @@ When a `## MARKET CONTEXT (PRE-FETCHED):` block is present: skip macro lookups e
 - Prices: within the last 24 hours
 - Analyst data: within the last 30 days
 - Earnings dates: explicitly stated (not inferred from quarterly patterns)
-- Fed policy: reflects the most recent FOMC meeting
+- Central-bank policy: reflects the most recent Riksbank, ECB and Fed decisions
 
 ## Critical Search Requirements
 
@@ -50,8 +54,8 @@ When a `## MARKET CONTEXT (PRE-FETCHED):` block is present: skip macro lookups e
 | Analyst ratings/targets | `research`: `[TICKER] analyst ratings` |
 | Earnings date | `research`: `[TICKER] earnings date` (one ticker per query) |
 | VIX level | `quotes`: `^VIX` |
-| Fed policy | `research`: `Federal Reserve latest decision` |
-| Sector performance | `history`: sector ETFs, 5d/1d |
+| Central-bank policy | `research`: one query per bank (Riksbank, ECB, Fed) |
+| Sector performance | `history`: European sector proxies from `investor-profile.json`, 5d/1d |
 
 ## Workflow Steps
 
@@ -59,22 +63,20 @@ When a `## MARKET CONTEXT (PRE-FETCHED):` block is present: skip macro lookups e
 
 If `## MARKET CONTEXT (PRE-FETCHED):` block is present, read regime from it and skip to Step 1.
 
-Otherwise, fetch and classify (same sources as the market-snapshot skill):
-
-1. **S&P 500 Technical Position** — current level (`quotes`: `^GSPC`), distance from 50-day MA (bullish if >3%) and 200-day MA (bullish if >8%) from `indicators`
-2. **Volatility & Sentiment** — VIX level (`quotes`: `^VIX`). Interpretation: <15=Greed, 15–20=Neutral, 20–25=Caution, >25=Fear
-3. **Sector Leadership** — last 5 days sector ETF returns (`history`). Growth leading=Risk-On; Defensive leading=Risk-Off
-4. **Fed Policy Stance** — latest decision (`research`). Cutting=Dovish, Pausing=Neutral, Hiking=Hawkish
+Otherwise, run the market-snapshot skill's Steps 1–2 (home, European and global index trend; VIX; European sector leadership; Riksbank, ECB and Fed stance) and use its six-signal matrix.
 
 Output this block:
 ```
 MARKET REGIME: [RISK-ON / TRANSITIONAL / RISK-OFF]
 
 Evidence:
+- OMX Stockholm 30: [Above/Below] 50-day MA by X%
+- STOXX Europe 600: [Above/Below] 50-day MA by X%
 - S&P 500: [Above/Below] 50-day MA by X%
 - VIX: X.XX ([Greed/Neutral/Fear])
-- Sector Leadership: [Growth/Mixed/Defensive]
-- Fed Stance: [Dovish/Neutral/Hawkish]
+- European Sector Leadership: [Cyclicals/Mixed/Defensives]
+- Central Banks: Riksbank [stance], ECB [stance], Fed [stance] → net [Easing/On hold/Tightening]
+- Divergence: [home vs global, if any]
 
 Investment Implications:
 - [Deployment guidance based on regime]
@@ -82,21 +84,24 @@ Investment Implications:
 
 ### Step 1 — New Opportunity Discovery (MANDATORY)
 
-Perform ALL of the following searches:
-1. `best performing sectors this year` — identify sectors missing from portfolio
-2. `stocks breaking out new highs this week` — momentum plays
-3. `analyst upgrades past 7 days` — newly recommended stocks
-4. `undervalued stocks strong earnings growth` — value opportunities
-5. Regime-adjusted:
-   - Risk-On → `AI stocks earnings growth`, `growth technology leaders`
-   - Risk-Off → `dividend aristocrats`, `defensive consumer staples`
+Search the home market first, then Europe, then global. Perform ALL of the following searches (one subject per query):
+1. `best performing sectors on Nasdaq Stockholm this year` and `best performing European sectors this year` — identify sectors missing from the portfolio
+2. `Nasdaq Stockholm large cap stocks new 52-week highs this week` — home-market momentum
+3. `analyst upgrades Swedish Nordic stocks past week` and `analyst upgrades European stocks past week` — newly recommended stocks
+4. `undervalued Nordic stocks strong earnings growth` — value opportunities
+5. `global stocks analyst upgrades past week` — global ideas (check the instrument is ISK-eligible and tradable at the broker)
+6. Regime-adjusted:
+   - Risk-On → `Nordic growth stocks earnings momentum`, `European technology and industrial leaders`
+   - Risk-Off → `Swedish defensive dividend stocks`, `European defensive consumer staples and health care`
+
+Home-market and European candidates should make up at least half of the evaluated new stocks unless none meet the bar — say so if that happens.
 
 For every viable new stock found:
 - Current price from `quotes` (batch the candidates)
 - Search `[TICKER] analyst price target` with `research`
 - Search `[TICKER] earnings growth rate` with `research`
 - Score using the 1–10 framework below
-- Calculate recommended position size from available cash
+- Calculate recommended position size as a percentage of available cash (Step 3), in the stock's currency and the base currency
 
 **New Stock Evaluation Template:**
 ```
@@ -104,7 +109,7 @@ Ticker & Company Name:
 Current Price & Analyst Target:
 Growth Rate & Key Metrics:
 Fundamental Score (1–10):
-Recommended Investment: $X = Y.XXX shares at $Z/share
+Recommended Investment: X [base currency] (= Y.YY [stock currency]) = N shares at Z [stock currency]/share
 Portfolio Fit Rationale:
 ```
 
@@ -139,43 +144,53 @@ Score each stock 1–10 on:
 | Transitional | Combined ≥ 6.5 | 50–70% | 30–50% |
 | Risk-Off | Combined ≥ 7.0 | 30–50% | 50–70% |
 
-**Position Sizing Logic (Fractional Share Compatible):**
-- High conviction (Score 8–10): $25–40 per stock
-- Medium conviction (Score 6.5–7.9): $15–25 per stock
-- Speculative (Score 6.0–6.4): $10–15 per stock (Risk-On only)
+**Position Sizing Logic** (percentages from `investor-profile.json`, never fixed amounts):
+- High conviction (Score 8–10): 25–40% of available cash
+- Medium conviction (Score 6.5–7.9): 15–25% of available cash
+- Speculative (Score 6.0–6.4): 10–15% of available cash (Risk-On only)
+
+Convert each amount to the stock's currency with `fx`. Swedish brokers generally do not offer fractional shares: round down to whole shares and state the amount actually deployed. Skip orders so small that the broker's minimum commission is a material share of the order.
 
 Always express positions as:
-> "$X investment = Y.XXX shares at $Z/share"
+> "X SEK = N shares at Z [stock currency]/share (≈ Y [stock currency])"
 
 **Portfolio Construction Rules:**
-- Max single position: 35% of available cash
+- Max single position: 35% of available cash, and no position above 10% of total portfolio value after the trade
 - Sector concentration limit: 60% of available cash
 - Must have ≥2 sectors represented if deploying >50% of cash
+- Note currency exposure: report the share of portfolio value in SEK vs foreign currencies after the proposed trades
 
 ## Currency Rules
 
-Always use the **native trading currency** of each stock or fund:
-- NYSE/NASDAQ → USD ($)
+Prices, targets and stops use each instrument's **native trading currency**:
+- Nasdaq Stockholm → SEK (kr)
+- Oslo Børs → NOK; Nasdaq Copenhagen → DKK; Nasdaq Helsinki → EUR
+- Xetra / Euronext → EUR (€)
 - LSE → GBP (£) or GBp (pence)
-- Euronext → EUR (€)
-- TSE → JPY (¥)
-- ASX → AUD (A$)
-- TSX → CAD (C$)
+- NYSE/NASDAQ → USD ($)
 
-Show all prices, targets, position sizes, and P&L in each instrument's native currency. If portfolio mixes currencies, display each position in its own currency.
+Cash, position sizes, portfolio value, deployment amounts and P&L are reported in the **base currency** (SEK by default), converted with `fx`. For P&L on a foreign holding, split the return into local-price performance and currency effect (convert the entry at the `fx` rate on the purchase date).
 
 ## Portfolio Interpretation Rules
 
-1. **Fractional Shares:** If `fractional: true` in portfolio JSON — "Buy In Price" = total investment amount (not price per share). If `fractional: false` — "Buy In Price" = actual price per share; assume 1 share.
+1. **Cost basis:** Prefer quantity and cost basis from the `portfolio` connector. For pasted input: if `fractional: true`, "Buy In Price" is the total amount invested (in the base currency unless stated); if `fractional: false`, it is the price per share.
 2. **P&L Calculation:**
+   - From broker data: P&L = (Quantity × Current Price − Cost Basis) ÷ Cost Basis, in the base currency
    - Fractional = TRUE: Shares = Buy In Price ÷ Price at purchase; P&L = (Shares × Current Price − Buy In Price) ÷ Buy In Price
    - Fractional = FALSE: P&L = (Current Price − Buy In Price) ÷ Buy In Price
 3. **Days Held:** <7=Very new; 7–30=New; 30–90=Established; >90=Long-term
 4. Do NOT recommend "taking profits" on positions with <10% gains.
 
+## Account Rules (ISK by default — see `investor-profile.json`)
+
+- Selling, trimming and rebalancing inside an ISK have **no tax cost**. Decide purely on investment merit; never mention capital gains tax, tax-loss harvesting or holding periods for tax.
+- The ISK is taxed on its value, including cash — idle cash is not tax-free.
+- Foreign dividends suffer withholding tax that is only partly creditable; note it for high-yield foreign holdings.
+- Only recommend instruments that are ISK-eligible and tradable at the broker. US-domiciled ETFs are generally not available to EU retail investors — use UCITS alternatives.
+
 ## Opportunity Cost Rule
 
-If holding >50% cash while S&P is up >10% YTD, MUST justify:
+If holding >50% cash while the home index (OMX Stockholm 30) or the global benchmark is up >10% YTD (`history`, `range: "ytd"`), MUST justify:
 - What specific risk is being avoided
 - What entry condition is being waited for
 - Why a defensive posture is warranted
@@ -195,17 +210,17 @@ Cash is a position, but so is missing the rally.
 ```
 💰 WEEKLY ALLOCATION RECOMMENDATION
 
-Available Cash: [FROM USER DATA]
-Recommended Deployment: $XX (XX%)
-Cash to Hold: $XX (XX%)
+Available Cash: [FROM PORTFOLIO DATA, base currency]
+Recommended Deployment: XX SEK (XX%)
+Cash to Hold: XX SEK (XX%)
 
 Market Regime: [RISK-ON/TRANSITIONAL/RISK-OFF]
 Investment Posture: [AGGRESSIVE/BALANCED/DEFENSIVE]
 
 Allocations:
-1. [TICKER]: $XX (X.XXX fractional shares at $YY/share)
-2. [TICKER]: $XX (X.XXX fractional shares at $YY/share)
-3. Cash Reserved: $XX
+1. [TICKER]: XX SEK (N shares at YY [stock currency]/share)
+2. [TICKER]: XX SEK (N shares at YY [stock currency]/share)
+3. Cash Reserved: XX SEK
 
 Quality Bar: [X.X/10] — Only recommending stocks above this threshold
 
@@ -214,7 +229,7 @@ Rationale: [2–3 sentences on allocation mix given current environment]
 
 ### Section 2 — New Investment Opportunities
 - 3–5 evaluated new stocks with scores and recommendations
-- Format: `TICKER: Invest $XX = Y.XXX shares at $Z/share (Score: X.X/10)`
+- Format: `TICKER: Invest XX SEK = N shares at Z [stock currency]/share (Score: X.X/10)`
 
 ### Section 3 — Watching Stocks Analysis
 - Every stock on the watch list evaluated
@@ -240,12 +255,13 @@ After the full analysis report, append:
     {"ticker": "...", "score": 0.0, "action": "HOLD|TRIM|EXIT|ADD", "currency": "..."}
   ],
   "new_opportunities": [
-    {"ticker": "...", "score": 0.0, "recommended_amount": 0, "currency": "...", "price": 0.0}
+    {"ticker": "...", "score": 0.0, "recommended_amount_base": 0, "shares": 0, "currency": "...", "price": 0.0}
   ],
   "watchlist": [
-    {"ticker": "...", "score": 0.0, "action": "BUY|KEEP_WATCHING|STOP_WATCHING", "recommended_amount": 0, "currency": "..."}
+    {"ticker": "...", "score": 0.0, "action": "BUY|KEEP_WATCHING|STOP_WATCHING", "recommended_amount_base": 0, "currency": "..."}
   ],
-  "total_recommended_deployment": 0
+  "base_currency": "SEK",
+  "total_recommended_deployment_base": 0
 }
 </analysis-json>
 ```
@@ -255,7 +271,10 @@ After the full analysis report, append:
 - Never estimate current prices, or take them from search results — use `quotes`
 - Never convert currencies from memory or search — use `fx`
 - Never recommend profit-taking on <10% gains
-- Never hold >50% cash without written justification when S&P is up >10% YTD
+- Never hold >50% cash without written justification when the home or global benchmark is up >10% YTD
+- Never size positions in fixed currency amounts — use percentages of available cash from the profile
+- Never cite capital gains tax or tax-loss harvesting for an ISK
+- Never recommend US-domiciled ETFs to an EU retail investor
 - Never skip new opportunity discovery — it is mandatory regardless of market conditions
 - Never score growth stocks on raw P/E; use PEG or growth-relative metrics
 
@@ -263,7 +282,10 @@ After the full analysis report, append:
 
 - [ ] All current prices from `quotes`, with timestamp and currency (no estimates, no search)
 - [ ] Every currency conversion from `fx`
-- [ ] Fractional share positions calculated correctly
+- [ ] Share counts and amounts correct; position sizes are percentages of available cash, shown in SEK and the stock's currency
+- [ ] Foreign P&L split into local performance and currency effect
+- [ ] Home-market and European candidates evaluated, not only US stocks
+- [ ] No tax reasoning that contradicts ISK rules
 - [ ] Actual P&L calculated for all holdings
 - [ ] Market regime explicitly classified
 - [ ] Score thresholds adjusted for regime

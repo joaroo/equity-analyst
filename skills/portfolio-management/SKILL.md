@@ -13,6 +13,10 @@ description: Investment-committee synthesis of the fundamental and technical rep
 - If structured JSON blocks are missing, extract scores from free-text reports
 - Do NOT invoke without both analyst reports
 
+## Investor Context
+
+Read `investor-profile.json` first: base currency (SEK), account type (ISK), home market and position-sizing limits. All portfolio-level amounts are in the base currency.
+
 ## Data Source Priority
 
 1. Extract scores from `<analysis-json>` and `<technical-json>` blocks if present
@@ -67,7 +71,7 @@ Criteria:
 
 ---
 
-**🎯 BINARY EVENT SPECIAL CASE** — Earnings/FDA/legal within 3 days
+**🎯 BINARY EVENT SPECIAL CASE** — Earnings, regulatory or legal decision within 3 days
 
 When combined score ≥6.5 AND 🚨🚨🚨 BINARY EVENT flag present:
 
@@ -76,8 +80,8 @@ When combined score ≥6.5 AND 🚨🚨🚨 BINARY EVENT flag present:
 - Option B: Enter 25–50% of normal size (accept binary risk)
 
 **IF SMALL POSITION (<2% of portfolio):**
-- Calculate actual risk: Position $ × Implied Move %
-- If risk <$50 or <0.5% portfolio: HOLD THROUGH
+- Calculate actual risk: Position value (SEK) × Implied Move %
+- If risk <0.5% of portfolio value: HOLD THROUGH
 - Do not add before event; set post-event strategy
 
 **IF MEDIUM POSITION (2–5% of portfolio):**
@@ -87,7 +91,7 @@ When combined score ≥6.5 AND 🚨🚨🚨 BINARY EVENT flag present:
 **IF LARGE POSITION (>5% of portfolio):**
 - TRIM to 2–3% before event (risk management)
 
-Example: Combined score 8.6/10 + earnings today + position $103 = 1% portfolio = $10 actual risk → HOLD through, no new capital before event, deploy $30–40 post-earnings if beats.
+Example: Combined score 8.6/10 + earnings today + position 1,800 SEK in a 180,000 SEK portfolio (1%) × ±10% implied move = 180 SEK actual risk (0.1% of portfolio) → HOLD through, no new capital before the event, deploy a medium-conviction slice (15–25% of available cash) post-earnings if it beats.
 
 ---
 
@@ -126,6 +130,8 @@ IF P&L 0–10% (small gain/scratch):
 - Do NOT recommend "taking profits" — treat like new position
 - Hold if score ≥6.0
 
+Inside an ISK, trims and exits have no tax cost — the thresholds below are about risk and conviction, not tax. Measure P&L in the base currency and note how much of it is currency effect.
+
 IF P&L 10–25% (moderate gain):
 - Combined ≥7.0: Hold all
 - Combined 5–7: Hold all + trailing stop
@@ -159,8 +165,9 @@ Resolution: For each stock, identify specific disagreement, determine which conc
 
 **Diversification:**
 - No more than 60% in one sector (unless exceptional conviction)
-- No more than 40% of weekly capital in one stock
+- No more than 40% of weekly capital in one stock, and no position above 10% of total portfolio value
 - If two stocks highly correlated, reduce total exposure
+- Currency exposure: state the SEK vs foreign-currency split of the portfolio after the decisions; flag if a single foreign currency exceeds half of equity exposure
 
 **Cash Philosophy by Regime:**
 - Risk-On: 70–100% deployed
@@ -171,11 +178,18 @@ Resolution: For each stock, identify specific disagreement, determine which conc
 
 **Hold LESS cash (be more aggressive) when:** multiple Strong Buy opportunities (7+ combined scores), market breakout with accelerating momentum, regime just shifted Risk-On, been overly cautious recently.
 
-Opportunity cost: if holding >50% cash while S&P up >15% YTD, must justify with specific risk being avoided, specific entry condition, and why defensive posture is warranted.
+Opportunity cost: if holding >50% cash while the home index (OMX Stockholm 30) or the global benchmark is up >15% YTD, must justify with specific risk being avoided, specific entry condition, and why defensive posture is warranted.
 
 ## Currency Rules
 
-Use the native trading currency of each stock. For portfolio-level totals spanning multiple currencies, use user's base currency if specified (convert with `fx`) — otherwise present each position in its own currency and note the mixed-currency composition.
+Prices, targets and stops use each stock's native trading currency. Portfolio totals, allocations, cash and P&L use the base currency from `investor-profile.json` (SEK by default), converted with `fx`.
+
+## Account Rules (ISK)
+
+- No tax on realised gains or dividends inside the account and no loss deductions: never justify a hold, trim or exit with tax.
+- The account is taxed on its value, including cash, so holding cash has a small ongoing tax cost on top of opportunity cost.
+- Foreign dividend withholding tax is only partly creditable — mention it for high-yield foreign positions.
+- Recommend only ISK-eligible instruments tradable at the broker; no US-domiciled ETFs.
 
 ## Output Schema
 
@@ -187,13 +201,13 @@ Investment Committee Final Decision
 
 Market Environment: [RISK-ON / TRANSITIONAL / RISK-OFF]
 Investment Posture: [AGGRESSIVE / BALANCED / DEFENSIVE]
-Final Allocation: $XX of $100 deployed (XX% cash)
+Final Allocation: XX SEK of YY SEK available cash deployed (XX% cash)
 
 Top Recommendations:
-1. [TICKER] — $XX — [one-line action + key reason]
-2. [TICKER] — $XX — [one-line action + key reason]
+1. [TICKER] — XX SEK (N shares) — [one-line action + key reason]
+2. [TICKER] — XX SEK (N shares) — [one-line action + key reason]
 
-Held Cash: $XX — [one-sentence reason if >30%]
+Held Cash: XX SEK — [one-sentence reason if >30%]
 
 Key Takeaways:
 - [Most important fundamental insight]
@@ -206,7 +220,7 @@ Key Takeaways:
 
 | Ticker | Fundamental | Technical | Combined | Decision | Allocation | Entry Target | Stop-Loss |
 |--------|-------------|-----------|----------|----------|------------|--------------|-----------|
-| TICKER | X.X/10 | X.X/10 | X.X/10 | ✅/⚠️/❌ | $XX | $XX.XX | $XX.XX |
+| TICKER | X.X/10 | X.X/10 | X.X/10 | ✅/⚠️/❌ | XX SEK | XX.XX [CCY] | XX.XX [CCY] |
 
 ### Section 3 — Critical Immediate Actions
 
@@ -249,6 +263,8 @@ Close with: "Decision Finalized: [date]", "Next Review: [trigger or date]", "Inv
 - Never override analysts without explicit written reasoning
 - Never let a binary event alone make a strong opportunity into a SKIP (it is a sizing decision)
 - Never calculate combined scores without identifying stock type (Growth vs Value) first
+- Never express risk thresholds or allocations as fixed currency amounts — use percentages of portfolio value or available cash
+- Never use tax arguments that do not apply to an ISK
 - Never call write tools on the `portfolio` connector (orders, trade tickets, alerts, watchlists) — output recommendations only
 
 ## Verification Checklist

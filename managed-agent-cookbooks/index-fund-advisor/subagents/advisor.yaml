@@ -2,7 +2,7 @@ name: advisor
 description: |
   Monthly index fund portfolio analyst. Researches current fund performance, market
   conditions, allocation appropriateness, rebalancing needs, and 3–6 month outlook
-  for tax-advantaged accounts (401k, IRA, ISA, pension).
+  for the account type in investor-profile.json (Swedish ISK by default).
   Read-only — no writes, no notifications.
 
 permissions:

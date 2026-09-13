@@ -13,10 +13,10 @@ Via Claude Code plugin:
 ```
 /index-funds
 
-Holdings:
-- VTSAX: 60%
-- VXUS: 20%
-- BND: 20%
+Holdings (ISK):
+- Global index fund (e.g. Xtrackers MSCI World UCITS ETF, XDWD.DE): 60%
+- Swedish index fund: 25%
+- Swedish short-term bond fund: 15%
 ```
 
 ## Output

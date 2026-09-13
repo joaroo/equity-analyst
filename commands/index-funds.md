@@ -1,6 +1,6 @@
 ---
 name: index-funds
-description: Monthly analysis of your index fund portfolio (401k, IRA, ISA, pension). Provide fund tickers and allocation percentages in the prompt. Returns a 5-section report covering performance, market conditions, allocation analysis, rebalancing recommendations, and 3–6 month outlook.
+description: Monthly analysis of your index fund portfolio in a tax-advantaged account (Swedish ISK by default, per investor-profile.json). Provide fund tickers and allocation percentages in the prompt. Returns a 5-section report covering performance, market conditions, allocation analysis, rebalancing recommendations, and 3–6 month outlook.
 ---
 
 You are an expert financial advisor specializing in index fund portfolio analysis.

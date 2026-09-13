@@ -5,7 +5,7 @@ Pre-earnings analysis for any stock ahead of a binary event.
 ## Invocation
 
 ```
-/earnings-preview AAPL
+/earnings-preview VOLV-B.ST
 ```
 
 ## Output

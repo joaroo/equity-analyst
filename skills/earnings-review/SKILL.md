@@ -29,8 +29,8 @@ All actuals, guidance, and analyst reactions must be live-searched and cited as 
 
 Search `[TICKER] earnings results [most recent quarter]`:
 - Confirm report date and fiscal quarter
-- EPS actual vs. consensus estimate → beat/miss by $X.XX (X%)
-- Revenue actual vs. consensus estimate → beat/miss by $XM (X%)
+- EPS actual vs. consensus estimate → beat/miss by X.XX [CCY] (X%)
+- Revenue actual vs. consensus estimate → beat/miss by XM [CCY] (X%)
 - Key segment metrics (same ones monitored in Step 5 of earnings-preview)
 
 Search `[TICKER] Q[X] earnings key metrics`:
@@ -103,8 +103,8 @@ Based on thesis impact and updated score, recommend:
 - Set/update stop-loss based on post-earnings support levels
 
 **ADD** — thesis strengthened, score improved
-- Suggested allocation: $X = Y.XXX shares at current price (from `quotes`)
-- Entry: market order or limit at $X if you want a pullback
+- Suggested allocation: X SEK (a percentage of available cash per `investor-profile.json`) = N shares at current price (from `quotes`)
+- Entry: market order or limit at X [CCY] if you want a pullback
 
 **TRIM** — thesis weakened but not broken
 - Suggested trim: X% of current position
@@ -116,7 +116,11 @@ Based on thesis impact and updated score, recommend:
 
 ## Currency Rules
 
-Show all prices, stop levels, and allocation changes in the stock's native trading currency.
+Show prices and stop levels in the stock's native trading currency; allocation changes in the base currency.
+
+`[CCY]` in templates means the instrument's native trading currency (SEK for Nasdaq Stockholm, NOK Oslo, DKK Copenhagen, EUR Helsinki/Xetra/Euronext, GBP/GBp London, USD US exchanges). Position sizes and allocations are in the base currency from `investor-profile.json` (SEK by default), converted with `fx`.
+
+State the reporting currency of the results when it differs from the share's trading currency (common for Nordic companies).
 
 ## Output Schema
 
@@ -131,8 +135,8 @@ Show all prices, stop levels, and allocation changes in the stock's native tradi
 ### Results vs. Estimates
 | Metric | Actual | Estimate | Beat/Miss | YoY |
 |--------|--------|----------|-----------|-----|
-| EPS | $X.XX | $X.XX | +$X.XX (+X%) | +X% |
-| Revenue | $XB | $XB | +$XM (+X%) | +X% |
+| EPS | X.XX [CCY] | X.XX [CCY] | +X.XX [CCY] (+X%) | +X% |
+| Revenue | XB [CCY] | XB [CCY] | +XM [CCY] (+X%) | +X% |
 | [Key metric] | X | X | ✅/❌ | X% |
 
 ---
@@ -140,8 +144,8 @@ Show all prices, stop levels, and allocation changes in the stock's native tradi
 ### Guidance
 | Period | Metric | Guidance | vs. Prior Est. | Status |
 |--------|--------|----------|----------------|--------|
-| Q[X+1] | EPS | $X.XX–$X.XX | +X% | ✅ Raised |
-| FY[Year] | Revenue | $XB–$XB | Maintained | — |
+| Q[X+1] | EPS | X.XX [CCY]–X.XX [CCY] | +X% | ✅ Raised |
+| FY[Year] | Revenue | XB [CCY]–XB [CCY] | Maintained | — |
 
 **Management Tone:** [Confident / Cautious / Warning]
 Key commentary: "[1–2 sentence quote or summary]"
@@ -151,8 +155,8 @@ Key commentary: "[1–2 sentence quote or summary]"
 ### Analyst Reactions (48h post-report)
 | Analyst | Action | Old Target | New Target |
 |---------|--------|------------|------------|
-| [Firm] | Upgrade to Buy | $XX | $XX |
-| [Firm] | Maintained | $XX | $XX (raised) |
+| [Firm] | Upgrade to Buy | XX [CCY] | XX [CCY] |
+| [Firm] | Maintained | XX [CCY] | XX [CCY] (raised) |
 
 ---
 
@@ -168,7 +172,7 @@ Key commentary: "[1–2 sentence quote or summary]"
 
 [Specific action with dollar amounts, share counts, and rationale]
 
-**Stop-Loss:** $XX.XX ([X%] below current, at [technical level])
+**Stop-Loss:** XX.XX [CCY] ([X%] below current, at [technical level])
 
 **What to Monitor Next Quarter:**
 - [Specific metric or milestone]
