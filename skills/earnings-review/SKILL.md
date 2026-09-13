@@ -1,3 +1,8 @@
+---
+name: earnings-review
+description: Post-earnings review for one stock — actuals vs estimates, guidance change, price and volume reaction, analyst revisions, thesis impact, updated fundamental score, and a Hold / Add / Trim / Exit call. Use for /earnings-review TICKER within two weeks after a company reports; not before results are out.
+---
+
 # Skill: Earnings Review
 
 ## Trigger Conditions

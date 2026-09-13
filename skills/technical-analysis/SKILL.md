@@ -1,3 +1,8 @@
+---
+name: technical-analysis
+description: Independent technical analysis of every stock in a fundamental report — trend vs 20/50/200-day moving averages, RSI, MACD, volume, support/resistance, earnings-proximity risk, stop-losses — with an AGREE/MODIFY/DISAGREE call per stock. Use after fundamental-analysis, or when asked about chart setup or entry timing.
+---
+
 # Skill: Technical Analysis
 
 ## Trigger Conditions

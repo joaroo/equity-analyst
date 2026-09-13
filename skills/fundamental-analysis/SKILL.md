@@ -1,3 +1,8 @@
+---
+name: fundamental-analysis
+description: Systematic fundamental analysis of a stock portfolio — market regime classification, new opportunity discovery, 1–10 scoring of holdings and watchlist, and position sizing from available cash. Use in the /analyze pipeline after market-snapshot, or when asked to score or evaluate stocks on fundamentals.
+---
+
 # Skill: Fundamental Analysis
 
 ## Trigger Conditions

@@ -1,3 +1,8 @@
+---
+name: market-snapshot
+description: Fetch current market conditions and classify the regime as RISK-ON, TRANSITIONAL or RISK-OFF from index trend, volatility, sector leadership and central-bank stance; returns compact JSON only. Use at the start of /analyze, for /snapshot, or when asked about the current market regime.
+---
+
 # Skill: Market Snapshot
 
 ## Trigger Conditions

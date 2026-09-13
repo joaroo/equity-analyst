@@ -1,3 +1,8 @@
+---
+name: catalyst-calendar
+description: Four-week forward scan of holdings and watchlist for binary and directional events — earnings, regulatory decisions, product events, central-bank meetings and major macro releases — ranked HIGH/MEDIUM/LOW with high-risk windows flagged. Use in /analyze Phase 0, for /catalyst-calendar, or when asked what events are coming up.
+---
+
 # Skill: Catalyst Calendar
 
 ## Trigger Conditions
