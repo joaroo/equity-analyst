@@ -12,3 +12,6 @@
 
 # local Claude settings (belt-and-suspenders — also covered by global gitignore)
 .claude/settings.local.json
+
+# dependencies
+node_modules/
