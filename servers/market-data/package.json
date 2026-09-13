@@ -1,0 +1,23 @@
+{
+  "name": "equity-analyst-market-data",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Remote MCP server: structured quotes, OHLC history and FX rates for equity-analyst.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "zod": "^4.6.4"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  }
+}
