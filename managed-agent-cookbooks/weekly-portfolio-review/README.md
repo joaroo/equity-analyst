@@ -5,9 +5,9 @@ Full weekly stock analysis pipeline — from raw portfolio text to formatted not
 ## Pipeline
 
 ```
-User Input (portfolio text or Finance folder reference)
+portfolio connector (broker, read-only) — or portfolio text in the prompt
     │
-    orchestrator parses portfolio JSON
+    orchestrator builds portfolio JSON
     │
     ├── market-snapshot ───────────────────────── Phase 0 (parallel)
     └── catalyst-scanner ────────────────────────┘
@@ -26,7 +26,9 @@ User Input (portfolio text or Finance folder reference)
 ## Prerequisites
 
 The following MCP connectors must be configured:
-- `market-data` — unbound; awaiting a broker MCP connector (see `.mcp.json`)
+- market-data MCP — backs `quotes`, `history`, `indicators`, `fx` (see `connectors/market-data/CONNECTOR.md`)
+- Built-in `WebSearch` / `WebFetch` — backs `research` (fundamentals, ratings, events, Fed)
+- Optional broker MCP — backs `portfolio` (read tools only); without it, provide the portfolio in the prompt
 - `${NOTIFICATION_MCP_TOOL}` — any chat or email MCP provider (e.g. Telegram, Slack, email). Set the `NOTIFICATION_MCP_TOOL` environment variable to the MCP tool name for your provider.
 
 ## Invocation
@@ -52,11 +54,12 @@ Or ask it to read from a file: "Read my portfolio from ~/Finance/holdings.txt"
 
 | Subagent | Read | Write | MCP Access |
 |----------|------|-------|------------|
-| market-snapshot | ✅ | ❌ | market-data only |
-| catalyst-scanner | ✅ | ❌ | market-data only |
-| fundamental-analyst | ✅ | ❌ | market-data only |
-| technical-analyst | ✅ | ❌ | market-data only |
-| portfolio-manager | ✅ | ✅ (notifications only) | market-data + notification connector |
+| orchestrator | ✅ | ❌ | portfolio (read tools only) |
+| market-snapshot | ✅ | ❌ | quotes, indicators, history, web search |
+| catalyst-scanner | ✅ | ❌ | web search |
+| fundamental-analyst | ✅ | ❌ | quotes, indicators, fx, web search |
+| technical-analyst | ✅ | ❌ | quotes, indicators, history, web search |
+| portfolio-manager | ✅ | ✅ (notifications only) | quotes, fx + notification connector |
 
 Only `portfolio-manager` can trigger notifications. Read-only analysts cannot cause side effects.
 

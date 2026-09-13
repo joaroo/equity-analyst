@@ -7,10 +7,17 @@ version: "2.0"
 trigger: "command:/analyze"
 
 orchestrator:
+  # The orchestrator is the only reader of the portfolio connector. Read tools only:
+  # broker MCPs such as Montrose grant read and write together, so the boundary is
+  # enforced here, not at the credential.
+  data_connectors: [portfolio]
+  portfolio_read_tools:
+    montrose: [get_user_accounts, get_holdings]
+    ibkr: [get_account_positions, get_account_balances, get_account_summary]
   tasks:
     portfolio-input:
-      description: Parse user-provided portfolio text into structured JSON (no sub-agent)
-      input: raw portfolio text (holdings with buy-in prices, watchlist, index funds, cash)
+      description: Build portfolio JSON from the portfolio connector if bound, else from user-provided text (no sub-agent)
+      input: portfolio connector read tools, or raw portfolio text (holdings with buy-in prices, watchlist, index funds, cash)
       output_schema:
         type: object
         properties:

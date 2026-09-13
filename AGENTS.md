@@ -17,14 +17,14 @@ The plugin has three user-facing entry points:
 
 ## Architecture in One Paragraph
 
-Skills are the source of truth. A skill file (`skills/*/SKILL.md`) defines trigger conditions, data source priority, workflow steps, output schema, anti-patterns, and a verification checklist. Commands (`commands/*.md`) are thin entry points that name the skill to follow. Subagents (`managed-agent-cookbooks/*/subagents/*.yaml`) declare permissions and tool access for managed deployment. Connectors (`.mcp.json`) map aliases to real MCP tools. **Agents read skills; they do not invent workflow steps.**
+Skills are the source of truth. A skill file (`skills/*/SKILL.md`) defines trigger conditions, data source priority, workflow steps, output schema, anti-patterns, and a verification checklist. Commands (`commands/*.md`) are thin entry points that name the skill to follow. Subagents (`managed-agent-cookbooks/*/subagents/*.yaml`) declare permissions and tool access for managed deployment. Connectors (`connectors.json`) map aliases to real MCP tools. **Agents read skills; they do not invent workflow steps.**
 
 ---
 
 ## File Map
 
 ```
-.mcp.json                        Connector alias registry — source of truth for tool routing
+connectors.json                  Connector alias registry — source of truth for tool routing
 .mcp.json.example                Concrete wiring example: Slack (notifications)
 connectors/*/CONNECTOR.md        Per-provider setup docs
 commands/*.md                    Slash command entry points (thin wrappers)
@@ -32,7 +32,7 @@ skills/*/SKILL.md                All analytical logic lives here
 managed-agent-cookbooks/         Orchestrator + subagent YAMLs for managed deployment
 ```
 
-When you need to understand what to do: **read the skill file**. When you need to understand what tool to call: **read `.mcp.json`**.
+When you need to understand what to do: **read the skill file**. When you need to understand what tool to call: **read `connectors.json`**.
 
 ---
 
@@ -42,12 +42,21 @@ All data access goes through connector aliases. Never reference raw tool names i
 
 | Alias | Resolves to | Use for |
 |-------|-------------|---------|
-| `market-data` | Unbound — awaiting broker MCP connector | All live market data — prices, earnings, ratings, macro |
+| `portfolio` | Broker MCP read tools (unbound until a broker is chosen) | Accounts, holdings, cost basis, cash — orchestrator only |
+| `quotes` | `market_quote` on the market-data MCP | Every current price, prior close, day change |
+| `history` | `market_history` on the market-data MCP | Raw OHLCV bars → support/resistance, drawdown, event-day moves, period returns |
+| `indicators` | `market_indicators` on the market-data MCP | Computed SMA 20/50/200, RSI(14), MACD(12,26,9), 52w/20d ranges, volume ratios |
+| `fx` | `fx_rate` on the market-data MCP | Every currency conversion (latest or dated) |
+| `research` | Built-in `WebSearch`, then `WebFetch` | Fundamentals, analyst ratings/targets, earnings dates/estimates/results, guidance, Fed stance, catalysts, mutual fund NAVs |
 | `notifications` | `${NOTIFICATION_MCP_TOOL}` | Progress updates and report delivery — portfolio-manager only |
 
-The `market-data` alias currently has no backing MCP server. If it is not resolvable at runtime, halt and report that market data is unavailable — do not fall back to training data.
+MCP tool names carry a client-specific prefix (Claude Code: `mcp__<server>__<tool>`); resolve aliases by the tool name.
 
-**Never** use `WebSearch`, `WebFetch`, or any tool not declared in `.mcp.json` for market data.
+**Numbers from tools, not prose.** Any figure `quotes`, `history`, `indicators` or `fx` can produce must come from those tools, carrying its timestamp and currency. A price read off a search result is stale by an unknown amount and may be the wrong listing or currency. Moving averages, RSI and MACD come from `indicators` — never searched and never calculated by hand.
+
+**Label search-derived data.** Fundamentals and narrative from `research` must cite their source. If a structured tool fails, say so plainly and mark any fallback figure as unverified.
+
+**Portfolio connector is read-only by rule.** Broker MCPs may grant write tools (orders, trade tickets, alerts) with the same credential. Only the orchestrator reads `portfolio`, and only with read tools. If `portfolio` is unbound or fails, use the portfolio the user provides and say so.
 
 ---
 
@@ -55,8 +64,9 @@ The `market-data` alias currently has no backing MCP server. If it is not resolv
 
 | Role | Read | Write | Notify |
 |------|------|-------|--------|
-| All analyst subagents | ✅ market-data | ✗ | ✗ |
-| portfolio-manager | ✅ market-data | ✅ notifications only | ✅ |
+| Orchestrator (`/analyze`) | ✅ portfolio (read tools only) | ✗ | ✅ milestones |
+| Analyst subagents | ✅ quotes / history / indicators / fx / research (per YAML) | ✗ | ✗ |
+| portfolio-manager | ✅ quotes, fx | ✅ notifications only | ✅ |
 
 If you are running as an analyst subagent, you have no write access. Do not attempt to call the notifications connector. Do not send output anywhere except back to the orchestrator.
 
@@ -71,7 +81,7 @@ When a command or orchestrator invokes a skill:
 3. **Follow workflow steps in order** — do not skip steps, do not reorder
 4. **Use the output schema exactly** — field names, table structure, JSON keys must match
 5. **Run the verification checklist** before returning output — if any item fails, fix it or state why it cannot be completed
-6. **Never fabricate data** — if a search returns no result for a required field, state "not found" rather than estimating
+6. **Never fabricate data** — if a tool or search returns no result for a required field, state "not found" rather than estimating
 
 ---
 
@@ -118,7 +128,7 @@ Phase 4: format-notification (orchestrator, no sub-agent)
 ## Standalone Command Protocols
 
 ### `/snapshot`
-Invoke `skills/market-snapshot/SKILL.md`. Return JSON only — no prose. Maximum 3 market-data calls.
+Invoke `skills/market-snapshot/SKILL.md`. Return JSON only — no prose. Index levels, VIX and sector returns from `quotes`/`history`; at most 2 `research` calls (Fed stance).
 
 ### `/earnings-preview TICKER`
 Check that earnings have **not yet been reported** this quarter. If they have, halt: `Earnings already reported — run /earnings-review {TICKER} instead.`  
@@ -129,7 +139,7 @@ Check that earnings **have been reported**. If not, halt: `Earnings not yet repo
 Then follow `skills/earnings-review/SKILL.md`. Do not invoke more than 2 weeks after the report date.
 
 ### `/catalyst-calendar`
-User provides portfolio JSON (holdings + watchlist). Batch tickers 5 per market-data call. Follow `skills/catalyst-calendar/SKILL.md`. Return both the JSON block and the markdown table.
+User provides portfolio JSON (holdings + watchlist), or read it from `portfolio`. One ticker per `research` query. Follow `skills/catalyst-calendar/SKILL.md`. Return both the JSON block and the markdown table.
 
 ### `/valuation TICKER`
 Follow `skills/valuation/SKILL.md`. Output: Cheap / Fair / Expensive verdict with intrinsic value range. **Do not issue a buy/sell recommendation** — that is the portfolio-manager's role.
@@ -168,14 +178,15 @@ Never silently skip a required field. Always state why it is missing.
 
 ## Common Mistakes to Avoid
 
-- Using training-data knowledge for revenue, earnings, or price — always search
+- Using training-data knowledge for revenue, earnings, or price — prices from `quotes`, financials from `research`
+- Taking a price, index level or indicator value from a search result
 - Calling `notifications` connector from an analyst subagent
 - Skipping the market context pre-fetch header check (causes redundant macro searches)
 - Collapsing the technical score to 1–2/10 because of an upcoming earnings event (see `skills/technical-analysis/SKILL.md` binary event handling)
 - Comparing peers with different business models in valuation comps (SaaS vs hardware, for example)
 - Issuing a buy/sell directive — output categories, not directives
 - Running `/earnings-review` before earnings have been reported
-- Making more market-data calls than necessary — batch tickers, reuse pre-fetched market context
+- Making more calls than necessary — batch symbols in `quotes` (up to 20), reuse pre-fetched market context
 
 ---
 
@@ -186,4 +197,4 @@ Never silently skip a required field. Always state why it is missing.
 3. Create `commands/{name}.md` if a slash command is needed — thin wrapper, connector alias in body, no `tools:` frontmatter
 4. Create `managed-agent-cookbooks/{name}/` with `agent.yaml`, `subagents/analyst.yaml`, `README.md` if managed deployment is needed
 5. Update `README.md` commands table and capabilities section
-6. Skills reference connector aliases only (`market-data`, `notifications`) — never raw MCP tool names
+6. Skills reference connector aliases only (`portfolio`, `quotes`, `history`, `indicators`, `fx`, `research`, `notifications`) — never raw MCP tool names

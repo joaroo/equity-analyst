@@ -9,10 +9,13 @@
 
 ## Data Source Priority
 
-1. `market-data` connector (see `.mcp.json`)
-2. No fallback — all financial metrics, peer multiples, and analyst targets must be live-searched
+1. `quotes` connector — current price for the ticker and every peer (one batched call)
+2. `research` connector (WebSearch, then WebFetch for thin results) — financials, share count, analyst targets, peer multiples
+3. `fx` connector — any conversion needed to compare peers listed in different currencies
 
-Do not use training-data financials — revenue, earnings, and growth rates change quarterly and must be searched.
+Symbols for `quotes` and `history` use exchange suffixes: Stockholm `VOLV-B.ST`, Helsinki `.HE`, Copenhagen `.CO`, Oslo `.OL`, Xetra `.DE`, London `.L`; US tickers take none; indices use a caret (`^GSPC`, `^VIX`, `^OMX`). A 404 usually means the wrong suffix.
+
+Do not use training-data financials — revenue, earnings, and growth rates change quarterly and must be searched. Financials from `research` are search-derived: cite the source and period.
 
 ## Workflow Steps
 
@@ -28,9 +31,9 @@ Search `[TICKER] revenue earnings EPS growth rate annual`:
 - EBITDA margin (LTM)
 - Free cash flow (LTM) if available
 
-Search `[TICKER] shares outstanding market cap`:
+Take the current price from `quotes`. Search `[TICKER] shares outstanding market cap`:
 - Shares outstanding (diluted)
-- Current market cap
+- Current market cap (recompute as price × diluted shares when the searched figure is stale)
 - Enterprise value (market cap + net debt, or search directly)
 
 Search `[TICKER] analyst price target consensus`:
@@ -197,7 +200,7 @@ Show all values in the stock's native trading currency. Make clear which currenc
 
 ## Verification Checklist
 
-- [ ] Current price and market cap confirmed via search
+- [ ] Current price from `quotes`; market cap consistent with price × diluted shares
 - [ ] LTM revenue and forward estimates found (not assumed)
 - [ ] 4–5 comparable peers identified with similar scale and business model
 - [ ] Peer multiples table has at least 3 populated peers

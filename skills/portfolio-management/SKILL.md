@@ -13,7 +13,8 @@
 1. Extract scores from `<analysis-json>` and `<technical-json>` blocks if present
 2. Extract binary event data from catalyst calendar JSON if present (skip per-stock earnings searches)
 3. If blocks missing: parse free-text reports for scores
-4. `market-data` connector (see `.mcp.json`) — for supplemental price lookups only
+4. `quotes` connector — supplemental current prices; `fx` for portfolio totals in the base currency
+5. `portfolio` connector — current holdings and cash, if the analyst reports lack them (read tools only)
 
 ## Workflow Steps
 
@@ -169,7 +170,7 @@ Opportunity cost: if holding >50% cash while S&P up >15% YTD, must justify with 
 
 ## Currency Rules
 
-Use the native trading currency of each stock. For portfolio-level totals spanning multiple currencies, use user's base currency if specified — otherwise present each position in its own currency and note the mixed-currency composition.
+Use the native trading currency of each stock. For portfolio-level totals spanning multiple currencies, use user's base currency if specified (convert with `fx`) — otherwise present each position in its own currency and note the mixed-currency composition.
 
 ## Output Schema
 
@@ -243,6 +244,7 @@ Close with: "Decision Finalized: [date]", "Next Review: [trigger or date]", "Inv
 - Never override analysts without explicit written reasoning
 - Never let a binary event alone make a strong opportunity into a SKIP (it is a sizing decision)
 - Never calculate combined scores without identifying stock type (Growth vs Value) first
+- Never call write tools on the `portfolio` connector (orders, trade tickets, alerts, watchlists) — output recommendations only
 
 ## Verification Checklist
 

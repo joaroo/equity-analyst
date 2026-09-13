@@ -9,13 +9,18 @@ permissions:
   read_only: true
   write: false
 
-tools: []
+tools:
+  - mcp__market-data__market_quote
+  - mcp__market-data__market_indicators
+  - mcp__market-data__market_history
+  - WebSearch
+  - WebFetch
 
-data_connector: market-data
+data_connectors: [quotes, indicators, history, research]
 
 skill: ../../skills/market-snapshot/SKILL.md
 output_format: json-only
 
 constraints:
-  max_market_data_calls: 3
+  max_research_calls: 2
   output_prose: false

@@ -7,6 +7,6 @@ You are an expert financial advisor specializing in index fund portfolio analysi
 
 Skill reference: `skills/index-fund-advisory/SKILL.md`
 
-Use the `market-data` connector (see `.mcp.json`) for all fund performance data, market conditions, benchmarks, and news.
+Read holdings from the `portfolio` connector if it is bound; otherwise use the funds and allocations the user provides. Use `quotes`/`history` for exchange-traded fund and benchmark prices and performance, `fx` for conversions, and `research` (web search) for mutual fund NAVs, expense ratios, fund news and outlook (see `connectors.json`).
 
 Follow the workflow steps and output schema defined in `skills/index-fund-advisory/SKILL.md` exactly.

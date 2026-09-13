@@ -9,16 +9,22 @@
 
 ## Data Source Priority
 
-1. `market-data` connector (see `.mcp.json`)
-2. No WebSearch or WebFetch fallback — all data routes through the `market-data` connector
+1. `portfolio` connector — holdings, cost basis and cash, when bound (otherwise the portfolio JSON from the orchestrator)
+2. `quotes` connector — every current price (batch up to 20 symbols per call)
+3. `fx` connector — every currency conversion; pass `date` when comparing against a historical entry price
+4. `research` connector (WebSearch, then WebFetch on the best URL when highlights are too thin) — fundamentals, analyst ratings/targets, earnings dates and growth, opportunity discovery
 
-When a `## MARKET CONTEXT (PRE-FETCHED):` block is present: skip macro searches entirely, focus all calls on stock-specific data (prices, earnings, analyst ratings, financials).
+Symbols for `quotes` and `history` use exchange suffixes: Stockholm `VOLV-B.ST`, Helsinki `.HE`, Copenhagen `.CO`, Oslo `.OL`, Xetra `.DE`, London `.L`; US tickers take none; indices use a caret (`^GSPC`, `^VIX`, `^OMX`). A 404 usually means the wrong suffix.
+
+Figures from `research` are search-derived: cite the source and never use search for a price.
+
+When a `## MARKET CONTEXT (PRE-FETCHED):` block is present: skip macro lookups entirely, focus all calls on stock-specific data (prices, earnings, analyst ratings, financials).
 
 ## Anti-Hallucination Rules
 
-1. Use web search before making ANY claim about current data (prices, ratings, earnings dates, VIX, Fed policy, sector performance)
-2. If data cannot be found via search, state: "Unable to verify [X] via web search"
-3. NEVER estimate or assume current prices — search each ticker individually
+1. Look up current data before making ANY claim about it — prices and index levels via `quotes`/`history`; ratings, earnings dates, Fed policy via `research`
+2. If data cannot be found, state: "Unable to verify [X]" and name the source that failed
+3. NEVER estimate or assume current prices — take every price from `quotes`, with its timestamp and currency
 4. If search results are unclear, acknowledge the uncertainty
 5. Cite specific sources for major claims (analyst targets, earnings dates)
 6. If conflicting data is found, present both sources and note the conflict
@@ -32,14 +38,15 @@ When a `## MARKET CONTEXT (PRE-FETCHED):` block is present: skip macro searches 
 
 ## Critical Search Requirements
 
-| Data Point | Search Query |
+| Data Point | Source |
 |---|---|
-| Stock price | `[TICKER] stock price today` |
-| Analyst ratings/targets | `[TICKER] analyst ratings` |
-| Earnings date | `[TICKER] earnings date` |
-| VIX level | `VIX current level` |
-| Fed policy | `Federal Reserve latest decision` |
-| Sector performance | `sector performance this week` |
+| Stock price | `quotes` |
+| Currency conversion | `fx` |
+| Analyst ratings/targets | `research`: `[TICKER] analyst ratings` |
+| Earnings date | `research`: `[TICKER] earnings date` (one ticker per query) |
+| VIX level | `quotes`: `^VIX` |
+| Fed policy | `research`: `Federal Reserve latest decision` |
+| Sector performance | `history`: sector ETFs, 5d/1d |
 
 ## Workflow Steps
 
@@ -47,12 +54,12 @@ When a `## MARKET CONTEXT (PRE-FETCHED):` block is present: skip macro searches 
 
 If `## MARKET CONTEXT (PRE-FETCHED):` block is present, read regime from it and skip to Step 1.
 
-Otherwise, search and classify:
+Otherwise, fetch and classify (same sources as the market-snapshot skill):
 
-1. **S&P 500 Technical Position** — current level, distance from 50-day MA (bullish if >3%), distance from 200-day MA (bullish if >8%)
-2. **Volatility & Sentiment** — VIX level (search: `VIX level today`). Interpretation: <15=Greed, 15–20=Neutral, 20–25=Caution, >25=Fear
-3. **Sector Leadership** — last 5 days sector performance. Growth leading=Risk-On; Defensive leading=Risk-Off
-4. **Fed Policy Stance** — latest decision. Cutting=Dovish, Pausing=Neutral, Hiking=Hawkish
+1. **S&P 500 Technical Position** — current level (`quotes`: `^GSPC`), distance from 50-day MA (bullish if >3%) and 200-day MA (bullish if >8%) from `indicators`
+2. **Volatility & Sentiment** — VIX level (`quotes`: `^VIX`). Interpretation: <15=Greed, 15–20=Neutral, 20–25=Caution, >25=Fear
+3. **Sector Leadership** — last 5 days sector ETF returns (`history`). Growth leading=Risk-On; Defensive leading=Risk-Off
+4. **Fed Policy Stance** — latest decision (`research`). Cutting=Dovish, Pausing=Neutral, Hiking=Hawkish
 
 Output this block:
 ```
@@ -80,8 +87,9 @@ Perform ALL of the following searches:
    - Risk-Off → `dividend aristocrats`, `defensive consumer staples`
 
 For every viable new stock found:
-- Search `[TICKER] current price analyst target`
-- Search `[TICKER] earnings growth rate`
+- Current price from `quotes` (batch the candidates)
+- Search `[TICKER] analyst price target` with `research`
+- Search `[TICKER] earnings growth rate` with `research`
 - Score using the 1–10 framework below
 - Calculate recommended position size from available cash
 
@@ -239,7 +247,8 @@ After the full analysis report, append:
 
 ## Anti-Patterns
 
-- Never estimate current prices — always search individually
+- Never estimate current prices, or take them from search results — use `quotes`
+- Never convert currencies from memory or search — use `fx`
 - Never recommend profit-taking on <10% gains
 - Never hold >50% cash without written justification when S&P is up >10% YTD
 - Never skip new opportunity discovery — it is mandatory regardless of market conditions
@@ -247,7 +256,8 @@ After the full analysis report, append:
 
 ## Verification Checklist
 
-- [ ] All current prices searched and verified (no estimates)
+- [ ] All current prices from `quotes`, with timestamp and currency (no estimates, no search)
+- [ ] Every currency conversion from `fx`
 - [ ] Fractional share positions calculated correctly
 - [ ] Actual P&L calculated for all holdings
 - [ ] Market regime explicitly classified

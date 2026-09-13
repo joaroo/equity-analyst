@@ -9,10 +9,15 @@
 
 ## Data Source Priority
 
-1. `market-data` connector (see `.mcp.json`)
-2. No WebSearch or WebFetch fallback
+1. `portfolio` connector — fund holdings and values, when bound (otherwise user-provided holdings)
+2. `quotes` connector — current price for exchange-traded funds and benchmark indices
+3. `history` connector — YTD and period performance for ETFs and benchmarks (`range: "ytd"`)
+4. `fx` connector — every currency conversion
+5. `research` connector (WebSearch/WebFetch) — NAVs and performance for mutual funds that are not exchange-traded, expense ratios, fund changes, market outlook
 
-Search extensively for current fund performance data before making any recommendations.
+Symbols for `quotes` and `history` use exchange suffixes: Stockholm `VOLV-B.ST`, Helsinki `.HE`, Copenhagen `.CO`, Oslo `.OL`, Xetra `.DE`, London `.L`; US tickers take none; indices use a caret (`^GSPC`, `^VIX`, `^OMX`). A 404 usually means the wrong suffix.
+
+Mutual funds (e.g. Swedish UCITS funds without a ticker) usually have no `quotes` symbol: take their NAV from `research`, cite the source and date, and note that the NAV may lag by a day or more.
 
 ## Currency Rules
 
@@ -28,7 +33,7 @@ Show all NAVs, performance figures, and expense ratios in each fund's native cur
 ### Step 1 — Current Performance Analysis
 
 For EACH index fund:
-- Current price/NAV and YTD performance
+- Current price/NAV and YTD performance (`quotes`/`history` for ETFs; `research` for mutual fund NAVs)
 - Compare vs benchmark (S&P 500, Total Stock Market, or relevant benchmark)
 - Expense ratios and any recent changes
 - Any fund changes, mergers, or management updates
@@ -103,7 +108,7 @@ Formatting rules:
 
 ## Verification Checklist
 
-- [ ] Current price/NAV searched for each fund
+- [ ] Current price/NAV for each fund — from `quotes` where a symbol exists, otherwise a dated, cited NAV
 - [ ] Each fund compared to relevant benchmark
 - [ ] Specific allocation recommendations include percentages
 - [ ] Rationale provided for any suggested changes

@@ -9,10 +9,16 @@
 
 ## Data Source Priority
 
-1. `market-data` connector (see `.mcp.json`)
-2. No WebSearch or WebFetch fallback
+1. `indicators` connector — computed SMA 20/50/200, RSI(14), MACD(12,26,9), 52-week and 20-day ranges, volume ratios (batch up to 10 symbols per call)
+2. `history` connector — daily OHLCV bars for support/resistance and pattern recognition
+3. `quotes` connector — current intraday price when it matters for entry timing
+4. `research` connector (WebSearch/WebFetch) — earnings dates and other event dates only; never prices or indicator values
 
-When market context is pre-fetched: skip S&P 500, VIX, sector, and Fed searches. Focus all calls on individual stock charts, MAs, RSI, earnings dates.
+Symbols for `quotes` and `history` use exchange suffixes: Stockholm `VOLV-B.ST`, Helsinki `.HE`, Copenhagen `.CO`, Oslo `.OL`, Xetra `.DE`, London `.L`; US tickers take none; indices use a caret (`^GSPC`, `^VIX`, `^OMX`). A 404 usually means the wrong suffix.
+
+When market context is pre-fetched: skip S&P 500, VIX, sector, and Fed lookups. Focus all calls on individual stock indicators, history and earnings dates.
+
+**Indicators come from `indicators`, never from search or mental arithmetic.** Quote its values as returned, including the "as of" date. If it reports "n/a" (too few bars), write "n/a" — never substitute a figure from a chart website or an estimate.
 
 ## Scoring Weight Awareness
 
@@ -30,7 +36,7 @@ Analyze EACH stock: existing holdings + new recommendations + **all watching sto
 
 ### Step 1 — Chart Setup
 
-Search `[TICKER] stock chart` or `[TICKER] moving averages`:
+From `indicators` (close, SMA 20/50/200 and the moving-average order):
 
 **Price vs Moving Averages:**
 - Current price: $XX.XX
@@ -53,7 +59,7 @@ Search `[TICKER] stock chart` or `[TICKER] moving averages`:
 
 ### Step 2 — Momentum Indicators
 
-Search `[TICKER] RSI` or `[TICKER] MACD`:
+From `indicators` (RSI14, MACD line/signal/histogram and any crossover in the last 5 bars):
 
 **RSI (14-period):**
 - <30 = Oversold (potential bounce)
@@ -69,11 +75,11 @@ RSI context: Strong uptrend + RSI 60–70 = Healthy. Choppy + RSI >70 = Warning.
 - Bearish: MACD crossing below signal line
 - Divergence: Price at new highs but MACD not confirming = Bearish divergence
 
-**Volume:** Rising on up days = healthy. Rising on down days = distribution.
+**Volume** (from `indicators`: last volume vs 20-day average, 20-day up/down volume ratio): Rising on up days = healthy. Rising on down days = distribution.
 
 ### Step 3 — Support & Resistance
 
-Search `[TICKER] support resistance`:
+Identify from `history` price action (swing lows/highs, prior breakout levels) plus the MA levels and 20-day/52-week ranges from `indicators`:
 
 **Support Levels:**
 - Primary: $XX.XX (recent low / MA support / prior breakout)
@@ -101,7 +107,7 @@ Neutral: Symmetrical triangle, Rectangle, Tight consolidation.
 
 ### Step 5 — Timing Red Flags
 
-Search `[TICKER] earnings date`:
+Use the catalyst calendar if present; otherwise look up the date with `research` (one ticker per query):
 
 **Earnings Proximity Risk:**
 - 0–3 days: 🚨🚨🚨 EXTREME RISK — do not enter (binary event)
@@ -242,7 +248,8 @@ After the full report, append:
 
 ## Anti-Patterns
 
-- Never assume or estimate chart data — always search
+- Never assume, estimate, search for or hand-calculate indicator values — take them from `indicators`
+- Never take prices or indicator values from search results
 - Never destroy an overall technical score to 1–2/10 solely for binary events
 - Never skip any stock present in the fundamental report
 - Never recommend "wait for perfect pullback" in strong uptrends (analysis paralysis)
@@ -250,10 +257,9 @@ After the full report, append:
 
 ## Verification Checklist
 
-- [ ] All current prices searched and verified
-- [ ] Moving averages for each stock calculated/found
-- [ ] RSI and MACD current values researched
-- [ ] Support/resistance levels identified from actual price action
+- [ ] All prices taken from `indicators` or `quotes` (with as-of date or timestamp)
+- [ ] Moving averages, RSI and MACD taken from `indicators` for each stock (or marked "n/a")
+- [ ] Support/resistance levels identified from `history` price action
 - [ ] Earnings dates within 14 days explicitly flagged
 - [ ] Risk/reward calculated for new entries
 - [ ] Stop-loss levels provided for all positions

@@ -7,7 +7,7 @@ You are a pre-earnings analyst.
 
 Skill reference: `skills/earnings-preview/SKILL.md`
 
-The user will provide a ticker symbol. Use the `market-data` connector (see `.mcp.json`) for all data.
+The user will provide a ticker symbol. Use `research` (web search) for dates, estimates, ratings and the options-implied move, `history` for past earnings-day price reactions, and `quotes` for the current price (see `connectors.json`).
 
 Follow the workflow steps and output schema defined in `skills/earnings-preview/SKILL.md` exactly.
 
