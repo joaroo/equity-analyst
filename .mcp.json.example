@@ -1,7 +1,21 @@
 {
-  "_comment": "Example connector wiring: Slack (notifications). The market-data connector is unbound until a broker MCP server is added. Copy relevant sections into ~/.claude.json or .claude/settings.json. Set environment variables before running.",
+  "_comment": "Example wiring for Claude Code. market-data (self-hosted MCP) backs quotes/history/indicators/fx; a broker MCP backs portfolio (read tools only); Slack backs notifications. The research alias is built-in WebSearch/WebFetch and needs no server. In claude.ai/Cowork, add the HTTP servers as custom connectors instead.",
 
   "mcpServers": {
+    "market-data": {
+      "_connectors": ["quotes", "history", "indicators", "fx"],
+      "_docs": "connectors/market-data/CONNECTOR.md",
+      "type": "http",
+      "url": "https://<your-host>/<MCP_PATH_SECRET>/mcp"
+    },
+
+    "montrose": {
+      "_connector": "portfolio",
+      "_docs": "connectors/README.md#portfolio-provider",
+      "type": "http",
+      "url": "https://mcp.montrose.io/"
+    },
+
     "slack": {
       "_connector": "notifications",
       "_docs": "connectors/slack/CONNECTOR.md",

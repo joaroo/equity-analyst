@@ -9,9 +9,11 @@ permissions:
   read_only: true
   write: false
 
-tools: []
+tools:
+  - WebSearch
+  - WebFetch
 
-data_connector: market-data
+data_connectors: [research]
 
 skill: ../../skills/catalyst-calendar/SKILL.md
 

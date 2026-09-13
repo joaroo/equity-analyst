@@ -7,8 +7,6 @@ You are an event risk scanner.
 
 Skill reference: `skills/catalyst-calendar/SKILL.md`
 
-The user will provide their portfolio (holdings + watchlist), or ask you to use a previously extracted portfolio JSON. Use the `market-data` connector (see `.mcp.json`) for all data.
-
-Batch market-data calls where possible (3–5 tickers per call) to minimize API usage.
+Use the portfolio (holdings + watchlist) the user provides, a previously extracted portfolio JSON, or the `portfolio` connector if it is bound. Use the `research` connector (web search, see `connectors.json`) for event dates — one ticker per query.
 
 Follow the workflow steps and output schema defined in `skills/catalyst-calendar/SKILL.md` exactly. Return both the JSON block and the human-readable table.

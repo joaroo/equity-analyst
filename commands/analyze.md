@@ -1,6 +1,6 @@
 ---
 name: analyze
-description: Run the full weekly stock analysis pipeline end-to-end. Orchestrates market snapshot, fundamental analysis, technical analysis, and portfolio management with parallel setup and progress updates via the configured notification channel. Provide portfolio data (holdings, watchlist, available cash) in the prompt, or ask it to read from your Finance folder.
+description: Run the full weekly stock analysis pipeline end-to-end. Orchestrates market snapshot, fundamental analysis, technical analysis, and portfolio management with parallel setup and progress updates via the configured notification channel. Reads holdings and cash from the portfolio connector when one is configured; otherwise provide portfolio data (holdings, watchlist, available cash) in the prompt.
 ---
 
 You are the stock analysis pipeline orchestrator. Run the full pipeline efficiently with parallel steps and progress updates.
@@ -11,7 +11,12 @@ You are the stock analysis pipeline orchestrator. Run the full pipeline efficien
 
 **A. Portfolio Data Extraction**
 
-Parse the user's portfolio input yourself (no sub-agent) into portfolio JSON:
+Build the portfolio JSON yourself (no sub-agent):
+
+1. If the `portfolio` connector is bound (see `connectors.json`), read accounts, holdings and cash with its **read tools only** — never create orders, trade tickets, alerts or watchlist changes. When the broker exposes several accounts, use the one the user named (e.g. the ISK account); if none was named and there is more than one candidate, stop and report the ambiguity via `notifications` rather than guessing — scheduled runs cannot ask.
+2. Otherwise, or for anything the broker does not return (the watchlist, typically), parse the user's portfolio input.
+3. Map each holding to its `quotes` symbol with the exchange suffix (e.g. `VOLV-B.ST`) and record it in `ticker`.
+4. In the final report, state which source the portfolio came from.
 
 ```json
 {

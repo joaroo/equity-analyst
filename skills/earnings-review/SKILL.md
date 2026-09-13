@@ -10,8 +10,13 @@
 
 ## Data Source Priority
 
-1. `market-data` connector (see `.mcp.json`)
-2. No fallback — all actuals, guidance, and analyst reactions must be live-searched
+1. `research` connector (WebSearch, then WebFetch for thin results) — actuals, guidance, analyst reactions
+2. `history` connector — earnings-day price reaction and volume vs average, from daily bars
+3. `quotes` connector — current price
+
+Symbols for `quotes` and `history` use exchange suffixes: Stockholm `VOLV-B.ST`, Helsinki `.HE`, Copenhagen `.CO`, Oslo `.OL`, Xetra `.DE`, London `.L`; US tickers take none; indices use a caret (`^GSPC`, `^VIX`, `^OMX`). A 404 usually means the wrong suffix.
+
+All actuals, guidance, and analyst reactions must be live-searched and cited as search-derived.
 
 ## Workflow Steps
 
@@ -43,10 +48,11 @@ Classify guidance as:
 
 ### Step 3 — Market and Analyst Reaction
 
-Search `[TICKER] stock reaction earnings day`:
-- Day-of price reaction (+/- %)
-- After-hours / pre-market reaction if applicable
-- Volume vs. average (institutional conviction signal)
+From `history` (`range: "1mo"`, `interval: "1d"`):
+- Day-of price reaction (+/- %): first session after the report vs the prior close
+- Volume vs. average: report-day volume ÷ average of the prior 20 sessions (institutional conviction signal)
+
+After-hours / pre-market reaction, if relevant, comes from `research` and is labelled search-derived.
 
 Search `[TICKER] analyst upgrades downgrades earnings`:
 - Any rating changes (upgrades/downgrades) in the 48 hours post-report
@@ -92,7 +98,7 @@ Based on thesis impact and updated score, recommend:
 - Set/update stop-loss based on post-earnings support levels
 
 **ADD** — thesis strengthened, score improved
-- Suggested allocation: $X = Y.XXX shares at current price
+- Suggested allocation: $X = Y.XXX shares at current price (from `quotes`)
 - Entry: market order or limit at $X if you want a pullback
 
 **TRIM** — thesis weakened but not broken
@@ -176,7 +182,7 @@ Key commentary: "[1–2 sentence quote or summary]"
 
 - [ ] Actual EPS and revenue found via search (not estimated)
 - [ ] Guidance for next quarter or full year found
-- [ ] Stock day-of reaction confirmed
+- [ ] Stock day-of reaction and volume ratio computed from `history`
 - [ ] At least one analyst reaction (upgrade/downgrade/target change) searched
 - [ ] Thesis impact classified as Strengthened / Neutral / Weakened with rationale
 - [ ] Updated fundamental score stated explicitly

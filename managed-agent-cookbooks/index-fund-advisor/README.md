@@ -4,7 +4,8 @@ Monthly analysis of index fund portfolios in tax-advantaged accounts.
 
 ## Prerequisites
 
-- `market-data` — unbound; awaiting a broker MCP connector (see `.mcp.json`)
+- market-data MCP — backs `quotes`, `history`, `fx` (see `connectors/market-data/CONNECTOR.md`)
+- Built-in `WebSearch` / `WebFetch` — backs `research` (mutual fund NAVs, expense ratios, outlook)
 
 ## Invocation
 

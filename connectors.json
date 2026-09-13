@@ -1,9 +1,53 @@
 {
+  "_about": "Alias registry read by skills and agents. Deliberately not named .mcp.json: Claude Code loads a plugin's root .mcp.json as MCP server config. Actual server wiring example: .mcp.json.example.",
   "connectors": {
-    "market-data": {
+    "portfolio": {
       "primary": null,
-      "status": "unbound — awaiting broker MCP connector",
-      "purpose": "All real-time market data: prices, analyst ratings, earnings dates, macro indicators, sector performance"
+      "status": "unbound — choose a broker MCP (see connectors/README.md)",
+      "purpose": "Read-only portfolio state: accounts, holdings, cost basis, cash per currency. Replaces pasting the portfolio in by hand.",
+      "read_tools_only": true,
+      "example_providers": {
+        "montrose": [
+          "get_user_accounts",
+          "get_holdings"
+        ],
+        "ibkr": [
+          "get_account_positions",
+          "get_account_balances",
+          "get_account_summary"
+        ]
+      },
+      "fallback": "If unbound or failing, parse portfolio text the user provides and say so in the report."
+    },
+    "quotes": {
+      "server": "market-data",
+      "tool": "market_quote",
+      "purpose": "Authoritative current price, prior close and day change, with timestamp and currency. Up to 20 symbols per call.",
+      "docs": "connectors/market-data/CONNECTOR.md"
+    },
+    "history": {
+      "server": "market-data",
+      "tool": "market_history",
+      "purpose": "Raw OHLCV bars for support/resistance, drawdown, event-day price moves and period returns. Max 400 most recent bars.",
+      "docs": "connectors/market-data/CONNECTOR.md"
+    },
+    "indicators": {
+      "server": "market-data",
+      "tool": "market_indicators",
+      "purpose": "Computed SMA 20/50/200, RSI(14), MACD(12,26,9), 52-week/20-day ranges and volume ratios from ~2 years of daily bars. Up to 10 symbols per call.",
+      "docs": "connectors/market-data/CONNECTOR.md"
+    },
+    "fx": {
+      "server": "market-data",
+      "tool": "fx_rate",
+      "purpose": "ECB reference rates for every currency conversion, latest or on a given date.",
+      "docs": "connectors/market-data/CONNECTOR.md"
+    },
+    "research": {
+      "primary": "WebSearch",
+      "follow_up": "WebFetch",
+      "kind": "built-in tools (not an MCP server)",
+      "purpose": "Qualitative and fundamental data no structured tool provides: fundamentals and ratios, analyst ratings and targets, earnings dates, estimates and results, guidance, Fed stance, catalysts, fund facts. Output from it must be labelled search-derived."
     },
     "notifications": {
       "primary": "${NOTIFICATION_MCP_TOOL}",
@@ -16,9 +60,12 @@
       }
     }
   },
+  "tool_name_resolution": "MCP tools appear with a client-specific prefix (Claude Code: mcp__<server>__<tool>; claude.ai/Cowork connectors use the connector name). Resolve an alias by its tool name suffix.",
   "example_config": ".mcp.json.example",
-  "anti_patterns": [
-    "Do not use WebSearch or WebFetch for market data — route through market-data connector",
+  "rules": [
+    "Any figure quotes, history, indicators or fx can produce must come from those tools — never from search results or hand calculation",
+    "Use research (WebSearch/WebFetch) only for data no structured tool provides, and label it search-derived",
+    "Never call write tools on the portfolio connector (orders, trade tickets, alerts, watchlist edits)",
     "Do not hardcode model names in skills or commands — use connector aliases only",
     "Do not call the notifications connector from read-only subagents — only portfolio-manager may write"
   ]

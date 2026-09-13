@@ -9,10 +9,13 @@
 
 ## Data Source Priority
 
-1. `market-data` connector (see `.mcp.json`)
-2. No fallback — all data must be live-searched; never use estimates from training data
+1. `research` connector (WebSearch, then WebFetch for thin results) — earnings date, consensus estimates, analyst ratings, past report dates and beat/miss, options-implied move
+2. `history` connector — actual stock reaction on past earnings days, computed from daily bars
+3. `quotes` connector — current price (for converting the implied move into a per-share amount)
 
-All consensus estimates, options pricing, and historical reactions must be searched, not assumed.
+Symbols for `quotes` and `history` use exchange suffixes: Stockholm `VOLV-B.ST`, Helsinki `.HE`, Copenhagen `.CO`, Oslo `.OL`, Xetra `.DE`, London `.L`; US tickers take none; indices use a caret (`^GSPC`, `^VIX`, `^OMX`). A 404 usually means the wrong suffix.
+
+All consensus estimates and options pricing must be searched, not assumed — they are search-derived, so cite the source. Never use estimates from training data. Price reactions come from `history`, not from articles.
 
 ## Workflow Steps
 
@@ -43,7 +46,7 @@ Search `[TICKER] earnings history results last 4 quarters`:
 For each of the last 4 quarters:
 - Did they beat or miss EPS? By how much?
 - Did they beat or miss revenue? By how much?
-- Stock reaction on earnings day (+/- %)
+- Stock reaction on earnings day (+/- %) — compute from `history` (`range: "1y"` or `"2y"`, `interval: "1d"`): close on the first session after the report vs the prior close
 - Guidance: raised / maintained / lowered
 
 Calculate:
@@ -148,7 +151,7 @@ Show all price targets, stop levels, and position sizes in the stock's native tr
 ---
 
 ### Options-Implied Move
-**±X%** (= ±$X.XX per share at current price)
+**±X%** (= ±$X.XX per share at current price from `quotes`)
 Interpretation: [Market expects X volatility; historical average is Y]
 
 ---
@@ -190,7 +193,7 @@ If holding existing position:
 
 - [ ] Earnings date confirmed with specific date and time (not approximate)
 - [ ] Consensus estimates from live search (not assumed)
-- [ ] At least 3 of last 4 quarters of historical reactions found
+- [ ] At least 3 of last 4 quarters of historical reactions found (price moves computed from `history`)
 - [ ] Options-implied move searched (not estimated)
 - [ ] Key metrics identified based on sector/business model
 - [ ] All 3 scenarios have specific numbers (not vague)
