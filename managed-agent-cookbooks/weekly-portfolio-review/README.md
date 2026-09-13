@@ -37,15 +37,15 @@ Via Claude Code plugin:
 ```
 /analyze
 
-Portfolio:
-- AAPL: $150 buy-in (fractional, NYSE)
-- MSFT: $280 buy-in (fractional, NASDAQ)
+Portfolio (ISK, SEK):
+- VOLV-B.ST: 40 shares, cost basis 11,200 SEK
+- INVE-B.ST: 25 shares, cost basis 6,100 SEK
 
 Watchlist:
-- NVDA: watching at $850
-- META: watching at $500
+- ASSA-B.ST: watching at 310 SEK
+- SAND.ST: watching at 360 SEK
 
-Cash: $100 USD
+Cash: 10,000 SEK
 ```
 
 Or ask it to read from a file: "Read my portfolio from ~/Finance/holdings.txt"

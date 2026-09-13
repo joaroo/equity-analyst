@@ -9,7 +9,7 @@ description: Monthly review of an index fund portfolio in a tax-advantaged accou
 
 - Invoked via `/index-funds` command — standalone, not part of the weekly stock analysis pipeline
 - Requires: user-provided fund holdings (tickers + allocation percentages)
-- Suitable for monthly analysis of tax-advantaged accounts: 401k, IRA, ISA, pension funds
+- Suitable for monthly analysis of tax-advantaged accounts — by default a Swedish ISK (see `investor-profile.json`); also pension or other wrapper accounts if the profile says so
 - Do NOT apply stock-picking scoring framework (fundamental/technical scores) to index funds
 
 ## Data Source Priority
@@ -24,14 +24,19 @@ Symbols for `quotes` and `history` use exchange suffixes: Stockholm `VOLV-B.ST`,
 
 Mutual funds (e.g. Swedish UCITS funds without a ticker) usually have no `quotes` symbol: take their NAV from `research`, cite the source and date, and note that the NAV may lag by a day or more.
 
+## Investor Context
+
+Read `investor-profile.json` first: base currency, account type and benchmarks.
+
 ## Currency Rules
 
-Always use the **native trading currency** of each fund:
-- US funds (Vanguard, Fidelity, iShares US, etc.) → USD
-- UK-listed ETFs → GBP or GBp
-- UCITS ETFs on Euronext → EUR
+Show each fund's NAV in its own currency (most Swedish funds quote in SEK; UCITS ETFs on Xetra or Euronext in EUR). Report holdings, allocation values and portfolio performance in the base currency (SEK by default), converted with `fx`. For funds holding foreign assets, note that SEK returns include currency effects.
 
-Show all NAVs, performance figures, and expense ratios in each fund's native currency. If the portfolio spans multiple currencies, note clearly and present each fund in its own currency.
+## Account Rules (ISK)
+
+- Rebalancing, switching funds and selling have no tax cost inside an ISK — recommend changes on merit, cost and risk only.
+- The account is taxed on its value each year regardless of return, so fund fees and idle cash are the main controllable drags.
+- Only ISK-eligible funds and UCITS ETFs tradable at the broker. US-domiciled ETFs (e.g. VTI, VOO, BND) are not available to EU retail investors — never recommend them; suggest UCITS equivalents.
 
 ## Workflow Steps
 
@@ -39,7 +44,7 @@ Show all NAVs, performance figures, and expense ratios in each fund's native cur
 
 For EACH index fund:
 - Current price/NAV and YTD performance (`quotes`/`history` for ETFs; `research` for mutual fund NAVs)
-- Compare vs benchmark (S&P 500, Total Stock Market, or relevant benchmark)
+- Compare vs the fund's own benchmark, measured in SEK: e.g. OMX Stockholm All-Share (`^OMXSPI`) for Swedish equity funds, MSCI World (`XDWD.DE`, converted with `fx`) for global funds, STOXX Europe 600 for European funds, a Swedish bond index for fixed income
 - Expense ratios and any recent changes
 - Any fund changes, mergers, or management updates
 - Whether allocation percentages still make sense
@@ -57,7 +62,7 @@ For EACH index fund:
 - Is the current allocation appropriate for long-term growth?
 - Over/under-exposure to specific sectors or asset classes?
 - Age-appropriate risk assessment (focused on long-term growth)
-- International vs domestic exposure analysis
+- Swedish vs international exposure, and unhedged currency exposure in SEK terms
 - Bond allocation considerations in current rate environment
 
 ### Step 4 — Rebalancing Recommendations
@@ -66,12 +71,12 @@ For EACH index fund:
 - Any funds underperforming that should be replaced?
 - Specific rebalancing actions with percentages
 - Timing considerations for any changes
-- Tax implications of rebalancing in 401k vs IRA vs ISA
+- Rebalancing is tax-free inside the ISK; weigh trading costs and fund fees instead
 
 ### Step 5 — Market Outlook & Strategy
 
 - 3–6 month outlook for index fund investing
-- Dollar-cost averaging strategy assessment
+- Regular monthly saving (månadssparande) strategy assessment
 - Any tactical adjustments for current market cycle
 - Defensive vs growth positioning recommendations
 
@@ -107,7 +112,9 @@ Formatting rules:
 
 - Do not apply stock-picking scoring framework to index funds
 - Do not recommend frequent rebalancing without considering tax implications
-- Always compare to the relevant benchmark, not just S&P 500 (a bond fund benchmarks to an aggregate bond index, not equities)
+- Always compare to the relevant benchmark in SEK, not just a US index (a bond fund benchmarks to a bond index, not equities)
+- Never recommend US-domiciled ETFs or cite 401k/IRA rules for an ISK
+- Never cite capital gains tax on rebalancing inside an ISK
 - Do not recommend individual stock substitutes for index funds in this skill
 - Do not ignore currency when presenting multi-currency portfolios
 
@@ -118,4 +125,5 @@ Formatting rules:
 - [ ] Specific allocation recommendations include percentages
 - [ ] Rationale provided for any suggested changes
 - [ ] Long-term growth strategy is the focus
-- [ ] Tax-advantaged account implications addressed where relevant
+- [ ] Account implications follow `investor-profile.json` (ISK: no tax on switches, value-based tax)
+- [ ] All recommended funds are ISK-eligible (no US-domiciled ETFs)

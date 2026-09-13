@@ -21,7 +21,7 @@ description: Independent technical analysis of every stock in a fundamental repo
 
 Symbols for `quotes` and `history` use exchange suffixes: Stockholm `VOLV-B.ST`, Helsinki `.HE`, Copenhagen `.CO`, Oslo `.OL`, Xetra `.DE`, London `.L`; US tickers take none; indices use a caret (`^GSPC`, `^VIX`, `^OMX`). A 404 usually means the wrong suffix.
 
-When market context is pre-fetched: skip S&P 500, VIX, sector, and Fed lookups. Focus all calls on individual stock indicators, history and earnings dates.
+When market context is pre-fetched: skip index, VIX, sector, and central-bank lookups. Focus all calls on individual stock indicators, history and earnings dates.
 
 **Indicators come from `indicators`, never from search or mental arithmetic.** Quote its values as returned, including the "as of" date. If it reports "n/a" (too few bars), write "n/a" — never substitute a figure from a chart website or an estimate.
 
@@ -44,10 +44,10 @@ Analyze EACH stock: existing holdings + new recommendations + **all watching sto
 From `indicators` (close, SMA 20/50/200 and the moving-average order):
 
 **Price vs Moving Averages:**
-- Current price: $XX.XX
-- 20-day MA: $XX.XX → Price is [+/-X%] [above/below]
-- 50-day MA: $XX.XX → Price is [+/-X%] [above/below]
-- 200-day MA: $XX.XX → Price is [+/-X%] [above/below]
+- Current price: XX.XX [CCY]
+- 20-day MA: XX.XX [CCY] → Price is [+/-X%] [above/below]
+- 50-day MA: XX.XX [CCY] → Price is [+/-X%] [above/below]
+- 200-day MA: XX.XX [CCY] → Price is [+/-X%] [above/below]
 
 **Trend Classification:**
 - Strong Bullish: Above all MAs, MAs in proper order (20>50>200)
@@ -87,13 +87,13 @@ RSI context: Strong uptrend + RSI 60–70 = Healthy. Choppy + RSI >70 = Warning.
 Identify from `history` price action (swing lows/highs, prior breakout levels) plus the MA levels and 20-day/52-week ranges from `indicators`:
 
 **Support Levels:**
-- Primary: $XX.XX (recent low / MA support / prior breakout)
-- Secondary: $XX.XX (stronger level below)
-- Major: $XX.XX (critical — break would be very bearish)
+- Primary: XX.XX [CCY] (recent low / MA support / prior breakout)
+- Secondary: XX.XX [CCY] (stronger level below)
+- Major: XX.XX [CCY] (critical — break would be very bearish)
 
 **Resistance Levels:**
-- Nearest: $XX.XX
-- Major: $XX.XX
+- Nearest: XX.XX [CCY]
+- Major: XX.XX [CCY]
 
 **Current Position Assessment:**
 Calculate: (Current Price − Support) / (Resistance − Support)
@@ -181,15 +181,9 @@ A great chart is still a great chart — earnings mean "don't add size", not "te
 
 ## Currency Rules
 
-Always use the native trading currency of each stock:
-- NYSE/NASDAQ → USD ($)
-- LSE → GBP (£) or GBp (pence)
-- Euronext → EUR (€)
-- TSE → JPY (¥)
-- ASX → AUD (A$)
-- TSX → CAD (C$)
-
 Show all prices, support/resistance, and stop-losses in each instrument's native currency.
+
+`[CCY]` in templates means the instrument's native trading currency (SEK for Nasdaq Stockholm, NOK Oslo, DKK Copenhagen, EUR Helsinki/Xetra/Euronext, GBP/GBp London, USD US exchanges). Position sizes and allocations are in the base currency from `investor-profile.json` (SEK by default), converted with `fx`.
 
 ## Output Schema
 
@@ -211,7 +205,7 @@ Each assessment ends with stop-loss level and entry/exit guidance.
 
 ### Portfolio-Level Technical Summary
 
-- S&P 500 technical status (current, vs MAs, trend)
+- Home index (OMX Stockholm 30), STOXX Europe 600 and S&P 500 technical status (current, vs MAs, trend) — from the market context block
 - VIX level and implication
 - Technical regime confirmation vs fundamental analyst's classification
 - Highest technical risk, best technical setup, lowest conviction calls
@@ -224,7 +218,7 @@ Show: Fundamental analyst proposed → Technical adjustment → Net effect (if a
 
 | Ticker | Current Price | Recommended Stop | % Risk | Rationale |
 |--------|---------------|------------------|--------|-----------|
-| TICKER | $XX.XX | $XX.XX | -X% | Below [support / MA / breakdown point] |
+| TICKER | XX.XX [CCY] | XX.XX [CCY] | -X% | Below [support / MA / breakdown point] |
 
 ### Structured JSON Block (for portfolio-manager consumption)
 

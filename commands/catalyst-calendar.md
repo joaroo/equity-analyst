@@ -1,6 +1,6 @@
 ---
 name: catalyst-calendar
-description: Scans all holdings and watchlist stocks for upcoming binary events over the next 4 weeks (earnings, FDA dates, product launches, FOMC, major data releases). Returns a structured event calendar with HIGH/MEDIUM/LOW risk tiers and a portfolio-level positioning recommendation.
+description: Scans all holdings and watchlist stocks for upcoming binary events over the next 4 weeks (interim reports, regulatory decisions, product launches, Riksbank/ECB/FOMC meetings, major data releases). Returns a structured event calendar with HIGH/MEDIUM/LOW risk tiers and a portfolio-level positioning recommendation.
 ---
 
 You are an event risk scanner.

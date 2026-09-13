@@ -45,7 +45,7 @@ claude plugin install equity-analyst@joaroo
 | `/index-funds` | Monthly index fund analysis — performance, allocation, rebalancing |
 | `/earnings-preview TICKER` | Pre-earnings — consensus estimates, scenarios, options-implied move |
 | `/earnings-review TICKER` | Post-earnings — beat/miss table, guidance, thesis impact, action |
-| `/catalyst-calendar` | 4-week event scan — earnings, FDA, FOMC, HIGH/MEDIUM/LOW risk tiers |
+| `/catalyst-calendar` | 4-week event scan — interim reports, regulatory decisions, Riksbank/ECB/FOMC, HIGH/MEDIUM/LOW risk tiers |
 | `/valuation TICKER` | Peer comps + DCF → intrinsic value range, Cheap / Fair / Expensive verdict |
 
 ---
@@ -91,7 +91,7 @@ Only `portfolio-manager` can trigger notifications. All analyst subagents are re
 <details>
 <summary><strong>Market regime classification</strong></summary>
 
-RISK-ON / TRANSITIONAL / RISK-OFF based on S&P 500 vs moving averages, VIX level, sector leadership, and Fed stance. All downstream scoring weights adapt to the classified regime — deployment targets range from 70–100% cash deployment in Risk-On to 30–50% in Risk-Off.
+RISK-ON / TRANSITIONAL / RISK-OFF from six signals: OMX Stockholm 30, STOXX Europe 600 and S&P 500 vs their moving averages, VIX, European sector leadership, and Riksbank/ECB/Fed stance (home market decides ties). All downstream scoring weights adapt to the classified regime — deployment targets range from 70–100% cash deployment in Risk-On to 30–50% in Risk-Off.
 
 </details>
 
@@ -140,7 +140,7 @@ Actuals vs estimates, guidance assessment (Raised / Maintained / Lowered / Withd
 <details>
 <summary><strong>Catalyst calendar</strong></summary>
 
-4-week forward scan across all holdings and watchlist. Event types: earnings, FDA PDUFA, product launches, FOMC, CPI, NFP. Risk tiers: HIGH (binary outcome) · MEDIUM (directional) · LOW (sentiment). High-risk windows flagged when 2+ HIGH events fall within 5 days. Fed into `/analyze` Phase 0 so `portfolio-manager` receives pre-fetched event context.
+4-week forward scan across all holdings and watchlist. Event types: interim reports, regulatory decisions (FDA/EMA), product launches, Riksbank/ECB/FOMC meetings, Swedish/euro-area/US inflation and US jobs data. Risk tiers: HIGH (binary outcome) · MEDIUM (directional) · LOW (sentiment). High-risk windows flagged when 2+ HIGH events fall within 5 days. Fed into `/analyze` Phase 0 so `portfolio-manager` receives pre-fetched event context.
 
 </details>
 
@@ -183,7 +183,11 @@ See [`.mcp.json.example`](.mcp.json.example) for concrete wiring.
 
 ## Currency
 
-All analysis uses each instrument's native trading currency — USD (NYSE/NASDAQ), GBP (LSE), EUR (Euronext), JPY (TSE), AUD (ASX), CAD (TSX). Mixed-currency portfolios are fully supported.
+Prices, targets and stops use each instrument's native trading currency (SEK, NOK, DKK, EUR, GBP, USD). Cash, position sizes, portfolio value and P&L use the base currency set in `investor-profile.json` (SEK by default), with foreign returns split into local performance and currency effect.
+
+## Investor Profile
+
+[`investor-profile.json`](investor-profile.json) holds everything country-specific: base currency, account type and its tax rules (Swedish ISK by default — no tax on trades inside the account, annual tax on its value), home, regional and global indices, European sector proxies, central banks, macro releases and position-sizing percentages. Edit it to use the plugin elsewhere; skills do not hardcode these values.
 
 ---
 
@@ -192,6 +196,7 @@ All analysis uses each instrument's native trading currency — USD (NYSE/NASDAQ
 ```
 .claude-plugin/plugin.json               # Plugin manifest (v2.0.0)
 connectors.json                          # Connector alias registry
+investor-profile.json                    # Base currency, account/tax rules, markets, sizing
 .mcp.json.example                        # MCP server wiring: market-data + broker + Slack
 connectors/
 ├── README.md                            # Aliases and portfolio (broker) providers
@@ -202,7 +207,7 @@ servers/
 commands/
 ├── analyze.md                           # /analyze — full weekly pipeline
 ├── snapshot.md                          # /snapshot — market regime
-├── index-funds.md                       # /index-funds — 401k/IRA analysis
+├── index-funds.md                       # /index-funds — fund portfolio (ISK) analysis
 ├── earnings-preview.md                  # /earnings-preview TICKER
 ├── earnings-review.md                   # /earnings-review TICKER
 ├── catalyst-calendar.md                 # /catalyst-calendar

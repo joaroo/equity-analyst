@@ -7,15 +7,15 @@ Scans all holdings and watchlist stocks for upcoming binary events over the next
 ```
 /catalyst-calendar
 
-Holdings: AAPL, MSFT, NVDA
-Watchlist: META, AMZN
+Holdings: VOLV-B.ST, INVE-B.ST, ERIC-B.ST
+Watchlist: ASSA-B.ST, SAND.ST
 ```
 
 Or provide a full portfolio JSON.
 
 ## Output
 
-- Structured event list sorted by date (earnings, FDA, FOMC, product launches)
+- Structured event list sorted by date (interim reports, regulatory decisions, Riksbank/ECB/FOMC, product launches)
 - HIGH / MEDIUM / LOW risk tiers per event
 - High-risk window identification (2+ HIGH events within 5 days)
 - Portfolio-level positioning recommendation

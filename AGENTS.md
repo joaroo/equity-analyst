@@ -25,6 +25,7 @@ Skills are the source of truth. A skill file (`skills/*/SKILL.md`) defines trigg
 
 ```
 connectors.json                  Connector alias registry — source of truth for tool routing
+investor-profile.json            Investor context — base currency, account/tax rules, markets, sizing
 .mcp.json.example                Concrete wiring example: Slack (notifications)
 connectors/*/CONNECTOR.md        Per-provider setup docs
 commands/*.md                    Slash command entry points (thin wrappers)
@@ -32,7 +33,7 @@ skills/*/SKILL.md                All analytical logic lives here
 managed-agent-cookbooks/         Orchestrator + subagent YAMLs for managed deployment
 ```
 
-When you need to understand what to do: **read the skill file**. When you need to understand what tool to call: **read `connectors.json`**.
+When you need investor context (currency, account rules, home market): **read `investor-profile.json`**. When you need to understand what to do: **read the skill file**. When you need to understand what tool to call: **read `connectors.json`**.
 
 ---
 
@@ -157,7 +158,7 @@ These apply to every skill, every time:
 2. **No estimated dates** — if an earnings date, FDA date, or event date cannot be confirmed via search, write "date unconfirmed" rather than guessing.
 3. **No fabricated peers** — comparable companies in valuation comps must be real, publicly traded, and searchable. Do not invent tickers.
 4. **No score manipulation for narrative** — scores are calculated from the formula in the skill file. Do not adjust scores to match a preferred conclusion.
-5. **Currency accuracy** — always use native trading currency per instrument. USD for NYSE/NASDAQ, GBP for LSE, EUR for Euronext, JPY for TSE, AUD for ASX, CAD for TSX.
+5. **Currency accuracy** — prices, targets and stops in each instrument's native trading currency (SEK Nasdaq Stockholm, NOK Oslo, DKK Copenhagen, EUR Helsinki/Xetra/Euronext, GBP London, USD US exchanges); cash, allocations, portfolio value and P&L in the base currency from `investor-profile.json`, converted with `fx`. Never write `$` for a non-USD amount.
 6. **Verdicts are bounded** — portfolio-manager outputs one of: Strong Buy / Conditional / Binary Event Special Case / Skip. Valuation outputs one of: Cheap / Fair / Expensive. Earnings review outputs one of: Hold / Add / Trim / Exit. No other verdict categories.
 
 ---

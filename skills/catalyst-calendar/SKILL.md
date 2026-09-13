@@ -17,7 +17,7 @@ description: Four-week forward scan of holdings and watchlist for binary and dir
 1. `research` connector (WebSearch, then WebFetch on the best URL) — every event date
 2. No fallback — all event dates must be confirmed via live search
 
-One ticker per search. `research` ranks pages by how well they match a single subject, so a multi-ticker query ("earnings dates for AAPL MSFT NVDA AMZN") returns a roundup article that matches all four weakly instead of the four filings that each confirm a date. Describe the page you want ("Q3 earnings date announcement for NVDA"), not keywords.
+One ticker per search. `research` ranks pages by how well they match a single subject, so a multi-ticker query ("interim report dates for VOLV-B ERIC-B INVE-B SAND") returns a roundup article that matches all four weakly instead of the four filings that each confirm a date. Describe the page you want ("Volvo Q3 2026 interim report publication date"), not keywords.
 
 ## Workflow Steps
 
@@ -32,13 +32,16 @@ One query per ticker. Searches are unmetered, so the cost of an extra call is co
 
 ### Step 2 — Macro Calendar
 
-Search for the next 4 weeks of macro events affecting the portfolio:
-- `FOMC meeting dates next month` — critical for rate-sensitive holdings (financials, utilities, REITs)
-- `CPI inflation report date next` — macro volatility trigger
-- `jobs report NFP date next` — macro sentiment
-- `earnings season peak dates` — when the bulk of S&P 500 companies report
+Search for the next 4 weeks of macro events affecting the portfolio, home market first (central banks and releases from `investor-profile.json`, one subject per query):
+- `Riksbank monetary policy decision dates` — critical for Swedish banks, real estate and SEK
+- `Swedish CPI CPIF release date Statistics Sweden` — drives Riksbank expectations
+- `ECB monetary policy meeting dates` — euro-area rates and EUR-denominated holdings
+- `euro area HICP flash estimate release date`
+- `FOMC meeting dates` — global risk sentiment and USD holdings
+- `US CPI release date` and `US jobs report release date` — global macro volatility
+- `Nasdaq Stockholm reporting season dates` and, if the portfolio holds US stocks, `US earnings season peak dates`
 
-Include FOMC and major data releases only if they fall within the 4-week window.
+Include central-bank meetings and major data releases only if they fall within the 4-week window.
 
 ### Step 3 — Aggregate and Sort
 
@@ -47,13 +50,14 @@ Compile all confirmed events into a single list sorted by date (earliest first).
 For each event, assign a risk tier:
 
 **HIGH risk:**
-- Earnings for any holding/watchlist stock (binary outcome)
-- FDA PDUFA date for biotech holding (binary outcome)
+- Earnings (interim report / kvartalsrapport) for any holding/watchlist stock (binary outcome)
+- Regulatory decision for a holding — e.g. FDA PDUFA or EMA opinion for a biotech/medtech holding (binary outcome)
 - Major product launch that is thesis-critical
 
 **MEDIUM risk:**
-- FOMC meeting (direction-setting for rate-sensitive positions)
-- CPI/NFP data release
+- Riksbank, ECB or FOMC decision (direction-setting for rate-sensitive positions; Riksbank first for Swedish holdings)
+- Swedish CPI, euro-area HICP, US CPI or US jobs release
+- Capital markets day for a holding
 - Investor day or analyst day for a holding
 - Earnings for a major sector peer (directional read-through)
 
@@ -83,24 +87,24 @@ Return the structured JSON schema below plus a brief text summary. The JSON is c
   "events": [
     {
       "date": "YYYY-MM-DD",
-      "ticker": "AAPL",
+      "ticker": "VOLV-B.ST",
       "event_type": "earnings",
       "risk_tier": "HIGH",
-      "notes": "Q1 FY2026 earnings, after market close. Implied move ±5%."
+      "notes": "Q3 2026 interim report, before market open. Implied move ±5%."
     },
     {
       "date": "YYYY-MM-DD",
       "ticker": "MACRO",
-      "event_type": "fomc",
+      "event_type": "central_bank",
       "risk_tier": "MEDIUM",
-      "notes": "FOMC rate decision. Rate-sensitive positions: XLF, VNQ."
+      "notes": "Riksbank policy decision. Rate-sensitive holdings: Swedish banks and real estate."
     }
   ],
   "high_risk_windows": [
     {
       "start": "YYYY-MM-DD",
       "end": "YYYY-MM-DD",
-      "affected_tickers": ["AAPL", "MSFT"],
+      "affected_tickers": ["VOLV-B.ST", "ERIC-B.ST"],
       "note": "2 HIGH-risk earnings in 3 days — avoid new large entries"
     }
   ],
@@ -119,9 +123,9 @@ Return the structured JSON schema below plus a brief text summary. The JSON is c
 
 | Date | Ticker | Event | Risk |
 |------|--------|-------|------|
-| [Date] | AAPL | Q1 FY2026 Earnings (AMC) | 🔴 HIGH |
-| [Date] | MACRO | FOMC Rate Decision | 🟡 MEDIUM |
-| [Date] | MSFT | Q3 FY2026 Earnings (AMC) | 🔴 HIGH |
+| [Date] | VOLV-B.ST | Q3 2026 Interim Report (pre-market) | 🔴 HIGH |
+| [Date] | MACRO | Riksbank Policy Decision | 🟡 MEDIUM |
+| [Date] | ERIC-B.ST | Q3 2026 Interim Report (pre-market) | 🔴 HIGH |
 
 ### High-Risk Window
 🚨 [Date range]: [Tickers] reporting within [X] days — avoid new large entries
@@ -135,13 +139,13 @@ Return the structured JSON schema below plus a brief text summary. The JSON is c
 - Do not include events beyond 4 weeks (noise without actionability)
 - Do not mark all events HIGH — risk tier must reflect actual binary outcome potential
 - Do not generate the calendar without confirmed dates — if a date cannot be found, note "date unconfirmed" rather than estimating
-- Do not omit FOMC meetings when portfolio contains rate-sensitive positions
+- Do not omit Riksbank, ECB or FOMC meetings when the portfolio contains rate-sensitive positions in those currencies
 - Do not put multiple tickers in one `research` query — one focused query per ticker
 
 ## Verification Checklist
 
 - [ ] Every HIGH-risk event has a confirmed date from live search
-- [ ] Macro events (FOMC, CPI) checked for the 4-week window
+- [ ] Macro events (Riksbank, ECB, FOMC; Swedish, euro-area and US inflation) checked for the 4-week window
 - [ ] Risk tiers reflect actual binary outcome potential (not all events are HIGH)
 - [ ] High-risk windows identified when 2+ HIGH events within 5 days
 - [ ] JSON is valid with no trailing prose

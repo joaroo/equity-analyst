@@ -5,7 +5,7 @@ Quick valuation sanity check — peer comps + simplified DCF for any stock.
 ## Invocation
 
 ```
-/valuation NVDA
+/valuation ASSA-B.ST
 ```
 
 ## Output

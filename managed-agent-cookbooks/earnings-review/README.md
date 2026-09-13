@@ -5,7 +5,7 @@ Post-earnings analysis run after a company has reported results.
 ## Invocation
 
 ```
-/earnings-review MSFT
+/earnings-review ERIC-B.ST
 ```
 
 ## Output

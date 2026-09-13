@@ -10,7 +10,7 @@ description: Absolute valuation check for one stock — peer comparables table (
 - Invoked via `/valuation TICKER` for any stock before initiating a new position or as a sanity check on an existing holding
 - Optionally invoked as part of the fundamental-analysis workflow when a high conviction score needs absolute value confirmation
 - Requires: ticker symbol
-- Best used when: considering a position >$50, stocks with P/E >40x or <10x, or after a large price move
+- Best used when: considering a position above 2% of portfolio value, stocks with P/E >40x or <10x, or after a large price move
 
 ## Data Source Priority
 
@@ -76,11 +76,11 @@ For mature/value stocks (revenue growth <10%), P/E and EV/EBITDA are more releva
 
 Apply peer median multiples to the subject company:
 
-- **EV/EBITDA implied price:** (Peer Median EV/EBITDA × LTM EBITDA − Net Debt) ÷ Shares = $X.XX
-- **P/E implied price:** Peer Median P/E × Forward EPS = $X.XX
-- **EV/Revenue implied price:** (Peer Median EV/Revenue × Forward Revenue − Net Debt) ÷ Shares = $X.XX
+- **EV/EBITDA implied price:** (Peer Median EV/EBITDA × LTM EBITDA − Net Debt) ÷ Shares = X.XX [CCY]
+- **P/E implied price:** Peer Median P/E × Forward EPS = X.XX [CCY]
+- **EV/Revenue implied price:** (Peer Median EV/Revenue × Forward Revenue − Net Debt) ÷ Shares = X.XX [CCY]
 
-Comps-implied value range: low $X — high $X (using spread of peer multiples, not just median)
+Comps-implied value range: low X [CCY] — high X [CCY] (using spread of peer multiples, not just median)
 
 ### Step 5 — Simplified DCF
 
@@ -89,26 +89,26 @@ Use 3 scenarios. Pull analyst consensus for revenue/earnings estimates where ava
 **Inputs:**
 - Base revenue: LTM revenue
 - Growth rate assumptions per scenario (from analyst estimates or historical trend)
-- Terminal growth rate: 3% (conservative long-term)
-- Discount rate (WACC): 10% default; adjust for risk profile
+- Terminal growth rate: at most the long-run inflation target of the reporting currency area — default 2% for SEK, EUR and USD (see `investor-profile.json`)
+- Discount rate: local 10-year government bond yield for the reporting currency (look it up with `research` and cite it) + about 5 percentage points equity risk premium, adjusted for size and business risk. State every input
 
 **Bull Case** (optimistic scenario):
 - Revenue CAGR over 5 years: analyst high estimate or +5% above consensus
 - EBITDA margin: expands to sector median or historical peak
 - Terminal multiple: current peer median EV/EBITDA
-- Implied intrinsic value: $X.XX per share
+- Implied intrinsic value: X.XX [CCY] per share
 
 **Base Case** (consensus scenario):
 - Revenue CAGR: analyst consensus estimate
 - EBITDA margin: current level maintained
 - Terminal multiple: slight discount to peer median
-- Implied intrinsic value: $X.XX per share
+- Implied intrinsic value: X.XX [CCY] per share
 
 **Bear Case** (conservative scenario):
 - Revenue CAGR: below consensus by 3–5%
 - EBITDA margin: compression scenario
 - Terminal multiple: at discount to peers
-- Implied intrinsic value: $X.XX per share
+- Implied intrinsic value: X.XX [CCY] per share
 
 ### Step 6 — Synthesis and Verdict
 
@@ -131,22 +131,28 @@ Compare to current price:
 
 Show all values in the stock's native trading currency. Make clear which currency is used for each metric.
 
+`[CCY]` in templates means the instrument's native trading currency (SEK for Nasdaq Stockholm, NOK Oslo, DKK Copenhagen, EUR Helsinki/Xetra/Euronext, GBP/GBp London, USD US exchanges). Position sizes and allocations are in the base currency from `investor-profile.json` (SEK by default), converted with `fx`.
+
+Many Nordic companies report in EUR or USD while their shares trade in SEK: convert per-share values into the trading currency with `fx` before comparing with the share price, and say so.
+
+Pick peers from the same region first (Nordic, then European), and add global peers only when the business model match is clearly better; note regional valuation differences when mixing them.
+
 ## Output Schema
 
 ```markdown
 ## Valuation: [TICKER] — [Company Name]
 
-**Current Price:** $XX.XX | **Market Cap:** $XB | **Enterprise Value:** $XB
+**Current Price:** XX.XX [CCY] | **Market Cap:** XB [CCY] | **Enterprise Value:** XB [CCY]
 
 ---
 
 ### Company Financials
 | Metric | LTM | Forward (NTM) | YoY Growth |
 |--------|-----|---------------|------------|
-| Revenue | $XB | $XB | +X% |
-| EBITDA | $XB | $XB | +X% |
-| EPS (diluted) | $X.XX | $X.XX | +X% |
-| FCF | $XB | — | — |
+| Revenue | XB [CCY] | XB [CCY] | +X% |
+| EBITDA | XB [CCY] | XB [CCY] | +X% |
+| EPS (diluted) | X.XX [CCY] | X.XX [CCY] | +X% |
+| FCF | XB [CCY] | — | — |
 
 ---
 
@@ -160,29 +166,29 @@ Show all values in the stock's native trading currency. Make clear which currenc
 | [PEER 3] | X | X% | X% | X.Xx | X.Xx | X.Xx |
 | **Peer Median** | — | — | — | **X.Xx** | **X.Xx** | **X.Xx** |
 
-**Comps-Implied Range:** $XX — $XX per share
+**Comps-Implied Range:** XX [CCY] — XX [CCY] per share
 
 ---
 
 ### DCF Scenarios
 | Scenario | Rev CAGR | EBITDA Margin | Implied Value |
 |----------|----------|---------------|---------------|
-| Bull | +X% | X% | $XX.XX |
-| Base | +X% | X% | $XX.XX |
-| Bear | +X% | X% | $XX.XX |
+| Bull | +X% | X% | XX.XX [CCY] |
+| Base | +X% | X% | XX.XX [CCY] |
+| Bear | +X% | X% | XX.XX [CCY] |
 
 ---
 
 ### Intrinsic Value Summary
 | Method | Implied Value |
 |--------|---------------|
-| Comps (median) | $XX.XX |
-| DCF (base) | $XX.XX |
-| **Central Estimate** | **$XX.XX** |
-| **Range** | **$XX — $XX** |
+| Comps (median) | XX.XX [CCY] |
+| DCF (base) | XX.XX [CCY] |
+| **Central Estimate** | **XX.XX [CCY]** |
+| **Range** | **XX [CCY] — XX [CCY]** |
 
 **Current Price vs. Central Estimate: [+/-X%] → [Cheap / Fair / Expensive]**
-**Analyst Consensus Target: $XX ([+/-X%] upside)**
+**Analyst Consensus Target: XX [CCY] ([+/-X%] upside)**
 
 ---
 
@@ -191,7 +197,7 @@ Show all values in the stock's native trading currency. Make clear which currenc
 [2–3 sentences on what the valuation implies for the investment case]
 
 **What would shift the verdict:**
-- To Cheap: [specific condition — e.g., price falls to $XX, or earnings revision]
+- To Cheap: [specific condition — e.g., price falls to XX, [CCY] or earnings revision]
 - To Expensive: [specific condition]
 ```
 
