@@ -31,6 +31,10 @@ When a `## CATALYST CALENDAR (PRE-FETCHED):` block is present: take earnings and
 
 When a `## MARKET CONTEXT (PRE-FETCHED):` block is present: skip macro lookups entirely, focus all calls on stock-specific data (prices, earnings, analyst ratings, financials).
 
+## Research Budget
+
+**At most 22 calls in total:** 4 discovery searches, 1 search (+1 optional WebFetch) per new candidate for at most 5 candidates, and 1 search per holding or watchlist stock for recent analyst rating/target changes (skip a stock whose rating news is already covered by a discovery result). Earnings dates come from the catalyst calendar block; macro data comes from the market context block. A research call is one WebSearch or one WebFetch. Each returns 10–25k characters, so research calls dominate token use. Count them as you go. When the budget is reached, stop researching and list in the output what went without research — never exceed it silently.
+
 ## Anti-Hallucination Rules
 
 1. Look up current data before making ANY claim about it — prices and index levels via `quotes`/`history`; ratings, earnings dates, Fed policy via `research`
@@ -86,22 +90,22 @@ Investment Implications:
 
 ### Step 1 — New Opportunity Discovery (MANDATORY)
 
-Search the home market first, then Europe, then global. Perform ALL of the following searches (one subject per query):
-1. `best performing sectors on Nasdaq Stockholm this year` and `best performing European sectors this year` — identify sectors missing from the portfolio
-2. `Nasdaq Stockholm large cap stocks new 52-week highs this week` — home-market momentum
-3. `analyst upgrades Swedish Nordic stocks past week` and `analyst upgrades European stocks past week` — newly recommended stocks
-4. `undervalued Nordic stocks strong earnings growth` — value opportunities
-5. `global stocks analyst upgrades past week` — global ideas (check the instrument is ISK-eligible and tradable at the broker)
-6. Regime-adjusted:
-   - Risk-On → `Nordic growth stocks earnings momentum`, `European technology and industrial leaders`
-   - Risk-Off → `Swedish defensive dividend stocks`, `European defensive consumer staples and health care`
+Perform exactly these **4 discovery searches** (one subject per query). Sector leadership is already in the market context block — do not search for it.
+1. `analyst upgrades and new buy ratings Nordic stocks past week` — Sweden/Nordics
+2. `analyst upgrades European stocks past week` — Europe outside the Nordics
+3. `analyst upgrades global large-cap stocks past week` — global (check the instrument is ISK-eligible and tradable at the broker)
+4. Regime-adjusted, aimed at the least-represented region or sector in the portfolio:
+   - Risk-On → `[region] growth stocks earnings momentum`
+   - Transitional → `[region] quality stocks strong balance sheet earnings growth`
+   - Risk-Off → `[region] defensive dividend stocks`
+
+Pick 3–5 candidates from these results and quotes; do not run further discovery searches.
 
 **Candidate mix.** Evaluate at least one candidate from each of: (a) Sweden/Nordics, (b) Europe outside the Nordics, (c) global (US or elsewhere; ISK-eligible and tradable at the broker). Then tilt the remaining slots toward what reduces current concentration: if the portfolio is already heavy in one country, sector or currency (check weights before discovery), prefer candidates outside it. A candidate that adds to an existing concentration needs a stated reason. If a bucket yields nothing above the bar, say so rather than silently dropping it.
 
-For every viable new stock found:
+For every candidate (3–5):
 - Current price from `quotes` (batch the candidates)
-- Search `[TICKER] analyst price target` with `research`
-- Search `[TICKER] earnings growth rate` with `research`
+- **One** `research` search: `[Company] analyst consensus price target and earnings growth forecast` — WebFetch the best result only if the target or growth figure is missing from the highlights
 - Score using the 1–10 framework below
 - Calculate recommended position size as a percentage of available cash (Step 3), in the stock's currency and the base currency
 
@@ -125,7 +129,7 @@ Recommendation: BUY (with allocation) / KEEP WATCHING (rationale) / STOP WATCHIN
 Portfolio Fit Rationale:
 ```
 
-**Minimum requirement:** Evaluate at least 3–5 new stocks AND all watching stocks before analyzing existing holdings.
+**Minimum requirement:** Evaluate 3–5 new stocks AND all watching stocks before analyzing existing holdings, within the research budget.
 
 ### Step 2 — Portfolio Scoring Framework
 

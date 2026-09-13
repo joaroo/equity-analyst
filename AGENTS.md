@@ -69,7 +69,7 @@ MCP tool names carry a client-specific prefix (Claude Code: `mcp__<server>__<too
 | Orchestrator (`/analyze`) | ✅ portfolio (accounts, holdings, watchlists — read tools only) | ✗ | ✅ if configured |
 | Subagents (`agents/*.md`) | ✅ quotes / history / indicators / fx / research | ✗ | ✗ |
 
-Subagents are defined in `agents/` and invoked as `equity-analyst:<name>`: `market-snapshot`, `catalyst-scanner`, `fundamental-analyst`, `technical-analyst`, `portfolio-manager`. Each preloads its skill and denies file writes and further agent spawning. Plugin agents cannot restrict MCP servers, so broker write tools must also be blocked in the client's connector permissions.
+Subagents are defined in `agents/` and invoked as `equity-analyst:<name>`: `market-snapshot` and `catalyst-scanner` (Haiku — tool gathering), `fundamental-analyst` and `technical-analyst` (Sonnet), `portfolio-manager` (inherits the session model — final judgement). Each skill sets a research budget (WebSearch/WebFetch calls), because search results dominate token use. Each preloads its skill and denies file writes and further agent spawning. Plugin agents cannot restrict MCP servers, so broker write tools must also be blocked in the client's connector permissions.
 
 If you are running as a subagent, you have no write access. Do not call notification or broker write tools. Do not send output anywhere except back to the orchestrator.
 

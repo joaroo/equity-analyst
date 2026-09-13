@@ -19,6 +19,10 @@ description: Four-week forward scan of holdings and watchlist for binary and dir
 
 One ticker per search. `research` ranks pages by how well they match a single subject, so a multi-ticker query ("interim report dates for VOLV-B ERIC-B INVE-B SAND") returns a roundup article that matches all four weakly instead of the four filings that each confirm a date. Describe the page you want ("Volvo Q3 2026 interim report publication date"), not keywords.
 
+## Research Budget
+
+**1 call per holding and watchlist ticker (+1 only for a regulatory or thesis-critical catalyst), plus at most 5 for the macro calendar, plus at most 3 WebFetch calls in total** to confirm dates that search highlights leave unclear. A research call is one WebSearch or one WebFetch. Each returns 10–25k characters, so research calls dominate token use. Count them as you go. When the budget is reached, stop researching and list in the output what went without research — never exceed it silently. Unconfirmed dates are recorded as "date unconfirmed".
+
 ## Workflow Steps
 
 ### Step 1 — Per-Ticker Event Search
@@ -28,18 +32,18 @@ For each ticker in holdings + watchlist, search:
 - For biotech/pharma: `[TICKER] FDA approval date PDUFA catalyst`
 - For consumer/tech: `[TICKER] product launch event conference`
 
-One query per ticker. Searches are unmetered, so the cost of an extra call is context, not billing — and a confirmed date is worth more than a saved call.
+One query per ticker. Add a second query only for a holding with a known regulatory catalyst (biotech/medtech) or a thesis-critical product event.
 
 ### Step 2 — Macro Calendar
 
-Search for the next 4 weeks of macro events affecting the portfolio, home market first (central banks and releases from `investor-profile.json`, one subject per query):
-- `Riksbank monetary policy decision dates` — critical for Swedish banks, real estate and SEK
-- `Swedish CPI CPIF release date Statistics Sweden` — drives Riksbank expectations
-- `ECB monetary policy meeting dates` — euro-area rates and EUR-denominated holdings
-- `euro area HICP flash estimate release date`
-- `FOMC meeting dates` — global risk sentiment and USD holdings
-- `US CPI release date` and `US jobs report release date` — global macro volatility
-- `Nasdaq Stockholm reporting season dates` and, if the portfolio holds US stocks, `US earnings season peak dates`
+Search for the next 4 weeks of macro events affecting the portfolio — **at most 5 queries**, home market first (central banks and releases from `investor-profile.json`):
+1. `Riksbank monetary policy meeting calendar [year]` — critical for Swedish banks, real estate and SEK
+2. `ECB monetary policy meeting calendar [year]` — euro-area rates and EUR-denominated holdings
+3. `FOMC meeting calendar [year]` — global risk sentiment and USD holdings
+4. `Statistics Sweden CPI CPIF release calendar [year]` — drives Riksbank expectations
+5. `US economic calendar CPI and jobs report release dates [month year]` — global macro volatility (skip if the portfolio has no USD exposure and the regime is not RISK-OFF)
+
+Central-bank calendars cover the whole year — one query each is enough. Reporting-season timing comes from the per-ticker searches in Step 1, not a separate query.
 
 Include central-bank meetings and major data releases only if they fall within the 4-week window.
 

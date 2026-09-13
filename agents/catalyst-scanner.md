@@ -1,6 +1,7 @@
 ---
 name: catalyst-scanner
 description: Read-only event-risk scanner for the /analyze pipeline. Given portfolio JSON, finds interim reports, regulatory decisions, central-bank meetings and macro releases in the next 4 weeks for every holding and watchlist stock, ranked HIGH/MEDIUM/LOW. Use when the orchestrator needs the catalyst calendar.
+model: haiku
 disallowedTools: Write, Edit, NotebookEdit, Agent
 skills:
   - equity-analyst:catalyst-calendar
