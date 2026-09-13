@@ -15,17 +15,16 @@
     "./commands/valuation.md"
   ],
   "skills": [
-    "./skills/fundamental-analysis/SKILL.md",
-    "./skills/technical-analysis/SKILL.md",
-    "./skills/portfolio-management/SKILL.md",
-    "./skills/market-snapshot/SKILL.md",
-    "./skills/index-fund-advisory/SKILL.md",
-    "./skills/earnings-preview/SKILL.md",
-    "./skills/earnings-review/SKILL.md",
-    "./skills/catalyst-calendar/SKILL.md",
-    "./skills/valuation/SKILL.md"
+    "./skills/fundamental-analysis",
+    "./skills/technical-analysis",
+    "./skills/portfolio-management",
+    "./skills/market-snapshot",
+    "./skills/index-fund-advisory",
+    "./skills/earnings-preview",
+    "./skills/earnings-review",
+    "./skills/catalyst-calendar",
+    "./skills/valuation"
   ],
-  "mcp_config": "./.mcp.json",
   "repository": "https://github.com/joaroo/equity-analyst",
   "license": "MIT"
 }
