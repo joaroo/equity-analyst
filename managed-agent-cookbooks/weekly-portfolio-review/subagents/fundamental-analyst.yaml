@@ -23,6 +23,7 @@ skill: ../../skills/fundamental-analysis/SKILL.md
 inputs:
   portfolio_json: "from:orchestrator.portfolio-input"
   market_context: "from:market-snapshot"
+  catalyst_calendar: "from:catalyst-scanner"
 
 output_format: markdown-report + analysis-json-block
 

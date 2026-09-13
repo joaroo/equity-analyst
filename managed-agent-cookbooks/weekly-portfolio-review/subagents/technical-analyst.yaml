@@ -23,6 +23,7 @@ skill: ../../skills/technical-analysis/SKILL.md
 inputs:
   fundamental_report: "from:fundamental-analyst"
   market_context: "from:market-snapshot"
+  catalyst_calendar: "from:catalyst-scanner"
   portfolio_json: "from:orchestrator.portfolio-input"
 
 output_format: markdown-report + technical-json-block

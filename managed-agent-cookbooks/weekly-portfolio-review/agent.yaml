@@ -79,6 +79,7 @@ pipeline:
         inputs:
           portfolio_json: "from:orchestrator.portfolio-input"
           market_context: "from:market-snapshot"
+          catalyst_calendar: "from:catalyst-scanner"
 
   phase_2:
     description: "Technical analysis — requires fundamental report + market context"
@@ -88,6 +89,7 @@ pipeline:
         inputs:
           fundamental_report: "from:fundamental-analyst"
           market_context: "from:market-snapshot"
+          catalyst_calendar: "from:catalyst-scanner"
           portfolio_json: "from:orchestrator.portfolio-input"
 
   phase_3:

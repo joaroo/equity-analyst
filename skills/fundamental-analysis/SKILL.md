@@ -18,7 +18,7 @@ Read `investor-profile.json` first: base currency, account type (ISK by default)
 
 ## Data Source Priority
 
-1. `portfolio` connector — holdings, cost basis and cash, when bound (otherwise the portfolio JSON from the orchestrator)
+1. Portfolio JSON from the orchestrator — holdings, cost basis, cash and `source` (the orchestrator has already read the broker if one is available; do not re-read it)
 2. `quotes` connector — every current price (batch up to 20 symbols per call)
 3. `fx` connector — every currency conversion; pass `date` when comparing against a historical entry price
 4. `research` connector (WebSearch, then WebFetch on the best URL when highlights are too thin) — fundamentals, analyst ratings/targets, earnings dates and growth, opportunity discovery
@@ -26,6 +26,8 @@ Read `investor-profile.json` first: base currency, account type (ISK by default)
 Symbols for `quotes` and `history` use exchange suffixes: Stockholm `VOLV-B.ST`, Helsinki `.HE`, Copenhagen `.CO`, Oslo `.OL`, Xetra `.DE`, London `.L`; US tickers take none; indices use a caret (`^GSPC`, `^VIX`, `^OMX`). A 404 usually means the wrong suffix.
 
 Figures from `research` are search-derived: cite the source and never use search for a price.
+
+When a `## CATALYST CALENDAR (PRE-FETCHED):` block is present: take earnings and event dates for holdings and watchlist stocks from it — search dates only for new candidates it does not cover. It spans 28 days: a holding absent from it has no event in that window, so do not search again.
 
 When a `## MARKET CONTEXT (PRE-FETCHED):` block is present: skip macro lookups entirely, focus all calls on stock-specific data (prices, earnings, analyst ratings, financials).
 
@@ -52,7 +54,7 @@ When a `## MARKET CONTEXT (PRE-FETCHED):` block is present: skip macro lookups e
 | Stock price | `quotes` |
 | Currency conversion | `fx` |
 | Analyst ratings/targets | `research`: `[TICKER] analyst ratings` |
-| Earnings date | `research`: `[TICKER] earnings date` (one ticker per query) |
+| Earnings date | Catalyst calendar block if present; otherwise `research`: `[TICKER] earnings date` (one ticker per query) |
 | VIX level | `quotes`: `^VIX` |
 | Central-bank policy | `research`: one query per bank (Riksbank, ECB, Fed) |
 | Sector performance | `history`: European sector proxies from `investor-profile.json`, 5d/1d |
@@ -94,7 +96,7 @@ Search the home market first, then Europe, then global. Perform ALL of the follo
    - Risk-On → `Nordic growth stocks earnings momentum`, `European technology and industrial leaders`
    - Risk-Off → `Swedish defensive dividend stocks`, `European defensive consumer staples and health care`
 
-Home-market and European candidates should make up at least half of the evaluated new stocks unless none meet the bar — say so if that happens.
+**Candidate mix.** Evaluate at least one candidate from each of: (a) Sweden/Nordics, (b) Europe outside the Nordics, (c) global (US or elsewhere; ISK-eligible and tradable at the broker). Then tilt the remaining slots toward what reduces current concentration: if the portfolio is already heavy in one country, sector or currency (check weights before discovery), prefer candidates outside it. A candidate that adds to an existing concentration needs a stated reason. If a bucket yields nothing above the bar, say so rather than silently dropping it.
 
 For every viable new stock found:
 - Current price from `quotes` (batch the candidates)
@@ -284,7 +286,7 @@ After the full analysis report, append:
 - [ ] Every currency conversion from `fx`
 - [ ] Share counts and amounts correct; position sizes are percentages of available cash, shown in SEK and the stock's currency
 - [ ] Foreign P&L split into local performance and currency effect
-- [ ] Home-market and European candidates evaluated, not only US stocks
+- [ ] Candidates evaluated from all three buckets (Nordic, Europe ex-Nordic, global), tilted away from existing country/sector/currency concentration
 - [ ] No tax reasoning that contradicts ISK rules
 - [ ] Actual P&L calculated for all holdings
 - [ ] Market regime explicitly classified

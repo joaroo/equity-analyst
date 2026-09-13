@@ -63,6 +63,7 @@ Wait for both to complete before proceeding. Notify: `🔍 Setup done. Running f
 Invoke the `equity-analyst:fundamental-analyst` agent with:
 - The portfolio JSON from Phase 0A
 - The market context JSON from Phase 0B labeled as `## MARKET CONTEXT (PRE-FETCHED):`
+- The catalyst calendar JSON from Phase 0C labeled as `## CATALYST CALENDAR (PRE-FETCHED):`
 
 Notify: `📊 Fundamental analysis done. Running technical analysis...`
 
@@ -73,6 +74,7 @@ Notify: `📊 Fundamental analysis done. Running technical analysis...`
 Invoke the `equity-analyst:technical-analyst` agent with:
 - The full fundamental analyst report (including its `<analysis-json>` block)
 - The market context JSON from Phase 0B labeled as `## MARKET CONTEXT (PRE-FETCHED):`
+- The catalyst calendar JSON from Phase 0C labeled as `## CATALYST CALENDAR (PRE-FETCHED):`
 - The portfolio JSON from Phase 0A
 
 Notify: `📈 Technical analysis done. Portfolio manager deciding...`
