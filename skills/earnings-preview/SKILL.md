@@ -1,3 +1,8 @@
+---
+name: earnings-preview
+description: Pre-earnings analysis for one stock — confirmed report date, consensus estimates, last four quarters of beats and price reactions, options-implied move, bull/base/bear scenarios, and an Enter Before / Wait for Result / Avoid call. Use for /earnings-preview TICKER or when a holding reports within 7 days; not after results are out.
+---
+
 # Skill: Earnings Preview
 
 ## Trigger Conditions

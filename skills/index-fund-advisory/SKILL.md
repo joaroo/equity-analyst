@@ -1,3 +1,8 @@
+---
+name: index-fund-advisory
+description: Monthly review of an index fund portfolio in a tax-advantaged account — per-fund performance vs benchmark, costs, allocation drift, rebalancing recommendations with percentages, and a 3–6 month outlook. Use for /index-funds or questions about fund allocation; not for individual stock picking.
+---
+
 # Skill: Index Fund Advisory
 
 ## Trigger Conditions

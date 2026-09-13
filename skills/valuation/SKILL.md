@@ -1,3 +1,8 @@
+---
+name: valuation
+description: Absolute valuation check for one stock — peer comparables table (EV/EBITDA, P/E, EV/Revenue, P/S) and a simplified bull/base/bear DCF giving an intrinsic value range and a Cheap / Fair / Expensive verdict, with no buy/sell call. Use for /valuation TICKER or when asked whether a stock is over- or undervalued.
+---
+
 # Skill: Valuation
 
 ## Trigger Conditions

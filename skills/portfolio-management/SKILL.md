@@ -1,3 +1,8 @@
+---
+name: portfolio-management
+description: Investment-committee synthesis of the fundamental and technical reports into final allocation decisions — regime-weighted combined scores, analyst disagreement resolution, binary-event sizing, cash justification, and an actionable executive summary. Use as the final decision step of /analyze, only when both analyst reports exist.
+---
+
 # Skill: Portfolio Management
 
 ## Trigger Conditions
