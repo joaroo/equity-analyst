@@ -7,13 +7,11 @@ You are the stock analysis pipeline orchestrator. Run the full pipeline efficien
 
 ## PIPELINE
 
-### Phase 0 — Parallel Setup
-
-Run BOTH simultaneously (make both tool calls in the same turn):
+### Phase 0 — Setup
 
 **A. Portfolio Data Extraction**
 
-Use the `local-inference` connector (Ollama). First call `mcp__ollama__ollama_list_models` to select the fastest available small model, then extract portfolio JSON:
+Parse the user's portfolio input yourself (no sub-agent) into portfolio JSON:
 
 ```json
 {
@@ -31,6 +29,8 @@ Use the `local-inference` connector (Ollama). First call `mcp__ollama__ollama_li
 }
 ```
 
+Then run B and C simultaneously (make both tool calls in the same turn):
+
 **B. Market Snapshot**
 
 Invoke the `equity-analyst:market-snapshot` agent. It fetches market conditions independently per `skills/market-snapshot/SKILL.md` and returns compact JSON.
@@ -39,7 +39,7 @@ Invoke the `equity-analyst:market-snapshot` agent. It fetches market conditions 
 
 Invoke the `equity-analyst:catalyst-calendar` agent with the portfolio JSON from Phase 0A. It scans all holdings + watchlist for upcoming binary events over the next 4 weeks per `skills/catalyst-calendar/SKILL.md` and returns structured event JSON.
 
-Wait for ALL THREE to complete before proceeding.
+Wait for both to complete before proceeding.
 
 ---
 
@@ -82,7 +82,7 @@ When complete, send: `${NOTIFICATION_MCP_TOOL}: "✅ Analysis complete. Formatti
 
 ### Phase 4 — Format & Deliver
 
-Use Ollama to reformat the portfolio manager's final report for delivery via the configured notification channel:
+Reformat the portfolio manager's final report yourself (no sub-agent) for delivery via the configured notification channel:
 - `##` headings → `*HEADING*` (bold, no hashes)
 - `**text**` → `*text*` (single asterisks)
 - `| table |` rows → aligned plain text or bullet lists

@@ -10,8 +10,6 @@ Skill files · Governed connectors · Permission-bounded subagents · Managed ag
 <br/>
 
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Plugin-blueviolet?style=flat-square)](https://claude.ai/code)
-[![Gemini](https://img.shields.io/badge/Market%20Data-Gemini-4285F4?style=flat-square)](connectors/gemini/CONNECTOR.md)
-[![Ollama](https://img.shields.io/badge/Local%20Inference-Ollama-white?style=flat-square)](connectors/ollama/CONNECTOR.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
 </div>
@@ -57,17 +55,18 @@ claude plugin install equity-analyst@joaroo
 ```
 User Input
     │
-    ├── portfolio-extractor (Ollama)    ──┐
-    ├── market-snapshot    (Gemini)     ──┤  Phase 0 — parallel
-    └── catalyst-scanner   (Gemini)    ──┘
+    orchestrator parses portfolio JSON
+    │
+    ├── market-snapshot    ──┐  Phase 0 — parallel
+    └── catalyst-scanner   ──┘
                 │
-    fundamental-analyst    (Gemini)        Phase 1
+    fundamental-analyst        Phase 1
                 │
-    technical-analyst      (Gemini)        Phase 2
+    technical-analyst          Phase 2
                 │
-    portfolio-manager      (Gemini)        Phase 3
+    portfolio-manager          Phase 3
                 │
-    format-notification    (Ollama)        Phase 4
+    format-notification        Phase 4 — orchestrator
                 │
           Notification delivery
 ```
@@ -76,11 +75,10 @@ User Input
 
 | Subagent | Access | Connector |
 |----------|--------|-----------|
-| `portfolio-extractor` | read-only | `local-inference` (Ollama) |
-| `market-snapshot` | read-only | `market-data` (Gemini) |
-| `catalyst-scanner` | read-only | `market-data` (Gemini) |
-| `fundamental-analyst` | read-only | `market-data` (Gemini) |
-| `technical-analyst` | read-only | `market-data` (Gemini) |
+| `market-snapshot` | read-only | `market-data` |
+| `catalyst-scanner` | read-only | `market-data` |
+| `fundamental-analyst` | read-only | `market-data` |
+| `technical-analyst` | read-only | `market-data` |
 | `portfolio-manager` | **write** — notify only | `market-data` + `notifications` |
 
 Only `portfolio-manager` can trigger notifications. All analyst subagents are read-only.
@@ -160,11 +158,10 @@ Governed in `.mcp.json`. Skills reference aliases only — real tool names live 
 
 | Alias | Provider | Purpose | Setup |
 |-------|----------|---------|-------|
-| `market-data` | Gemini (Search Grounding) | Prices, ratings, earnings, macro | [connectors/gemini/](connectors/gemini/CONNECTOR.md) |
-| `local-inference` | Ollama | Portfolio extraction, formatting | [connectors/ollama/](connectors/ollama/CONNECTOR.md) |
+| `market-data` | Unbound — awaiting broker MCP | Prices, ratings, earnings, macro | — |
 | `notifications` | Configurable | Progress updates, report delivery | [connectors/slack/](connectors/slack/CONNECTOR.md) |
 
-See [`.mcp.json.example`](.mcp.json.example) for a complete Gemini + Ollama + Slack wiring.
+See [`.mcp.json.example`](.mcp.json.example) for a Slack notifications wiring.
 
 **Notification provider** — set `NOTIFICATION_MCP_TOOL` to your send tool:
 
@@ -187,10 +184,8 @@ All analysis uses each instrument's native trading currency — USD (NYSE/NASDAQ
 ```
 .claude-plugin/plugin.json               # Plugin manifest (v2.0.0)
 .mcp.json                                # Connector alias registry
-.mcp.json.example                        # Concrete wiring: Gemini + Ollama + Slack
+.mcp.json.example                        # Concrete wiring: Slack
 connectors/
-├── gemini/CONNECTOR.md                  # market-data — Google AI API key, MCP server
-├── ollama/CONNECTOR.md                  # local-inference — local install, model selection
 └── slack/CONNECTOR.md                   # notifications reference impl
 commands/
 ├── analyze.md                           # /analyze — full weekly pipeline
@@ -211,7 +206,7 @@ skills/
 ├── catalyst-calendar/SKILL.md
 └── valuation/SKILL.md
 managed-agent-cookbooks/
-├── weekly-portfolio-review/             # /analyze pipeline (6 subagents)
+├── weekly-portfolio-review/             # /analyze pipeline (5 subagents)
 ├── index-fund-advisor/
 ├── earnings-preview/
 ├── earnings-review/

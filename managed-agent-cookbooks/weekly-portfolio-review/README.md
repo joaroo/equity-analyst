@@ -7,16 +7,18 @@ Full weekly stock analysis pipeline — from raw portfolio text to formatted not
 ```
 User Input (portfolio text or Finance folder reference)
     │
-    ├── portfolio-extractor (Ollama) ──────────── Phase 0 (parallel)
-    └── market-snapshot (Gemini search) ─────────┘
+    orchestrator parses portfolio JSON
+    │
+    ├── market-snapshot ───────────────────────── Phase 0 (parallel)
+    └── catalyst-scanner ────────────────────────┘
               │
-    fundamental-analyst (Gemini search) ──────── Phase 1
+    fundamental-analyst ─────────────────────── Phase 1
               │
-    technical-analyst (Gemini search) ────────── Phase 2
+    technical-analyst ───────────────────────── Phase 2
               │
-    portfolio-manager (Gemini search + notify)   Phase 3
+    portfolio-manager (+ notify) ────────────── Phase 3
               │
-    portfolio-extractor / format-notification ── Phase 4
+    orchestrator formats notification ───────── Phase 4
               │
     Notification delivery (chat or email)
 ```
@@ -24,8 +26,7 @@ User Input (portfolio text or Finance folder reference)
 ## Prerequisites
 
 The following MCP connectors must be configured:
-- `mcp__gemini__gemini_generate` — Google Gemini with search capability
-- `mcp__ollama__ollama_generate` + `mcp__ollama__ollama_list_models` — local Ollama instance
+- `market-data` — unbound; awaiting a broker MCP connector (see `.mcp.json`)
 - `${NOTIFICATION_MCP_TOOL}` — any chat or email MCP provider (e.g. Telegram, Slack, email). Set the `NOTIFICATION_MCP_TOOL` environment variable to the MCP tool name for your provider.
 
 ## Invocation
@@ -51,11 +52,11 @@ Or ask it to read from a file: "Read my portfolio from ~/Finance/holdings.txt"
 
 | Subagent | Read | Write | MCP Access |
 |----------|------|-------|------------|
-| portfolio-extractor | ✅ | ❌ | Ollama only |
-| market-snapshot | ✅ | ❌ | Gemini only |
-| fundamental-analyst | ✅ | ❌ | Gemini only |
-| technical-analyst | ✅ | ❌ | Gemini only |
-| portfolio-manager | ✅ | ✅ (notifications only) | Gemini + notification connector |
+| market-snapshot | ✅ | ❌ | market-data only |
+| catalyst-scanner | ✅ | ❌ | market-data only |
+| fundamental-analyst | ✅ | ❌ | market-data only |
+| technical-analyst | ✅ | ❌ | market-data only |
+| portfolio-manager | ✅ | ✅ (notifications only) | market-data + notification connector |
 
 Only `portfolio-manager` can trigger notifications. Read-only analysts cannot cause side effects.
 

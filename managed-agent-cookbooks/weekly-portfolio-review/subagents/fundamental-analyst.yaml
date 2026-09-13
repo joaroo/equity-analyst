@@ -9,18 +9,14 @@ permissions:
   read_only: true
   write: false
 
-tools:
-  - mcp__gemini__gemini_generate
-  - mcp__gemini__gemini_list_models
+tools: []
 
 data_connector: market-data
-model: gemini-3-flash-preview
-search: true
 
 skill: ../../skills/fundamental-analysis/SKILL.md
 
 inputs:
-  portfolio_json: "from:portfolio-extractor.extract-portfolio"
+  portfolio_json: "from:orchestrator.portfolio-input"
   market_context: "from:market-snapshot"
 
 output_format: markdown-report + analysis-json-block

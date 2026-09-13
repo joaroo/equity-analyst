@@ -12,14 +12,10 @@ permissions:
     - "${NOTIFICATION_MCP_TOOL}"
 
 tools:
-  - mcp__gemini__gemini_generate
-  - mcp__gemini__gemini_list_models
   - "${NOTIFICATION_MCP_TOOL}"
 
 data_connector: market-data
 notification_connector: notifications
-model: gemini-3-flash-preview
-search: true
 
 skill: ../../skills/portfolio-management/SKILL.md
 

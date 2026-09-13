@@ -10,7 +10,7 @@
 ## Data Source Priority
 
 1. `market-data` connector (see `.mcp.json`)
-2. No WebSearch or WebFetch fallback — all data routes through Gemini
+2. No WebSearch or WebFetch fallback — all data routes through the `market-data` connector
 
 When a `## MARKET CONTEXT (PRE-FETCHED):` block is present: skip macro searches entirely, focus all calls on stock-specific data (prices, earnings, analyst ratings, financials).
 
