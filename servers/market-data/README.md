@@ -6,7 +6,8 @@ numbers instead of scraped ones:
 | Tool | Source | Use |
 |------|--------|-----|
 | `market_quote` | Yahoo Finance chart API | Current price, prior close, day change — up to 20 symbols per call |
-| `market_history` | Yahoo Finance chart API | OHLCV bars (MAs, RSI, MACD, drawdown, period return) |
+| `market_history` | Yahoo Finance chart API | Raw OHLCV bars (support/resistance, drawdown, event-day moves, period return) |
+| `market_indicators` | Computed from Yahoo daily bars | SMA 20/50/200, RSI(14), MACD(12,26,9), 52w/20d ranges, volume ratios — up to 10 symbols |
 | `fx_rate` | Frankfurter (ECB) | Currency conversion, latest or point-in-time |
 
 No fundamentals: Yahoo's `quoteSummary` needs a cookie/crumb handshake and is too
