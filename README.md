@@ -66,9 +66,9 @@ portfolio connector (broker) or pasted input
                 │
     portfolio-manager          Phase 3
                 │
-    format-notification        Phase 4 — orchestrator
+    deliver report             Phase 4 — orchestrator
                 │
-          Notification delivery
+     response (+ optional notification)
 ```
 
 **Subagent permission boundaries**
@@ -80,9 +80,9 @@ portfolio connector (broker) or pasted input
 | `catalyst-scanner` | read-only | `research` |
 | `fundamental-analyst` | read-only | `quotes`, `indicators`, `fx`, `research` |
 | `technical-analyst` | read-only | `quotes`, `indicators`, `history`, `research` |
-| `portfolio-manager` | **write** — notify only | `quotes`, `fx` + `notifications` |
+| `portfolio-manager` | read-only | `quotes`, `fx` |
 
-Only `portfolio-manager` can trigger notifications. All analyst subagents are read-only.
+Subagents live in [`agents/`](agents/) and run as `equity-analyst:<name>`. All of them are read-only; only the orchestrator reads the broker (holdings, cash, watchlist) and sends notifications, which are optional — without `NOTIFICATION_MCP_TOOL` the report is simply returned in the session. Block the broker connector's write tools in your client's connector settings as well.
 
 ---
 
@@ -165,13 +165,13 @@ Defined in `connectors.json`. Skills reference aliases only — real tool names 
 | `indicators` | Self-hosted market-data MCP | Computed MAs, RSI, MACD, ranges, volume ratios | [connectors/market-data/](connectors/market-data/CONNECTOR.md) |
 | `fx` | Self-hosted market-data MCP | ECB exchange rates | [connectors/market-data/](connectors/market-data/CONNECTOR.md) |
 | `research` | Built-in WebSearch / WebFetch | Fundamentals, ratings, earnings, guidance, Fed, catalysts | — |
-| `notifications` | Configurable | Progress updates, report delivery | [connectors/slack/](connectors/slack/CONNECTOR.md) |
+| `notifications` | Optional, configurable | Progress updates, report delivery | [connectors/slack/](connectors/slack/CONNECTOR.md) |
 
 **Where the numbers come from.** Prices, index levels and exchange rates come from structured tools and carry timestamps; moving averages, RSI and MACD are computed server-side, not by the model. Fundamentals, estimates, analyst targets and event dates have no structured source here — they come from web search and are cited as search-derived, so treat scores built on them accordingly.
 
 See [`.mcp.json.example`](.mcp.json.example) for concrete wiring.
 
-**Notification provider** — set `NOTIFICATION_MCP_TOOL` to your send tool:
+**Notification provider (optional)** — set `NOTIFICATION_MCP_TOOL` to your send tool, or leave it unset to get results in the session only:
 
 | Provider | `NOTIFICATION_MCP_TOOL` |
 |----------|------------------------|
@@ -204,6 +204,12 @@ connectors/
 └── slack/CONNECTOR.md                   # notifications reference impl
 servers/
 └── market-data/                         # Self-hosted MCP behind quotes / history / indicators / fx
+agents/                                  # Plugin subagents for /analyze (all read-only)
+├── market-snapshot.md
+├── catalyst-scanner.md
+├── fundamental-analyst.md
+├── technical-analyst.md
+└── portfolio-manager.md
 commands/
 ├── analyze.md                           # /analyze — full weekly pipeline
 ├── snapshot.md                          # /snapshot — market regime

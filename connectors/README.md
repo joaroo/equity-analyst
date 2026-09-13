@@ -12,7 +12,7 @@ Connectors are the data source layer for this plugin. Most are MCP servers expos
 | `indicators` | [market-data MCP](market-data/CONNECTOR.md) | Computed MAs, RSI, MACD, ranges, volume ratios |
 | `fx` | [market-data MCP](market-data/CONNECTOR.md) | Currency conversion |
 | `research` | Built-in WebSearch / WebFetch | Fundamentals, ratings, earnings, guidance, Fed, catalysts |
-| `notifications` | Any chat/email MCP | Progress updates and final report delivery |
+| `notifications` | Any chat/email MCP (optional) | Progress updates and final report delivery |
 
 ## Portfolio Provider
 
@@ -20,10 +20,14 @@ The `portfolio` alias is unbound until you choose a broker. Tested options:
 
 | Broker | Read tools used | Notes |
 |--------|-----------------|-------|
-| Montrose (`https://mcp.montrose.io/`, OAuth) | `get_user_accounts`, `get_holdings` | Accounts addressable by ID (pick the ISK). Access expires after 7 days. No market data. Also exposes write tools — never used. |
+| Montrose (`https://mcp.montrose.io/`, OAuth) | `get_user_accounts`, `get_holdings`, `get_watchlists`, `get_watchlist` | Accounts addressable by ID (pick the ISK). Access expires after 7 days. No market data. Also exposes write tools — never used. |
 | IBKR (`https://api.ibkr.com/v1/api/mcp-public`, OAuth) | `get_account_positions`, `get_account_balances`, `get_account_summary` | One connected account at a time. Also has price history and options, not used by the plugin yet. |
 
 Neither broker provides fundamentals or analyst consensus.
+
+**Tool permissions.** Plugin agents cannot restrict MCP servers, so enforce read-only in the client: in the broker connector's tool permissions, set every write/delete tool (trade tickets, alerts, watchlist changes) to never allowed, and set the read tools above to always allowed — scheduled runs cannot answer approval prompts.
+
+**Account and watchlist selection.** Set `portfolio.account` and `portfolio.watchlist` in `investor-profile.json` when the broker has more than one ISK account or watchlist.
 
 ## Adding a Connector
 
@@ -34,7 +38,7 @@ Neither broker provides fundamentals or analyst consensus.
 
 ## Notification Provider
 
-The `notifications` connector is provider-agnostic. Set `NOTIFICATION_MCP_TOOL` to the tool name of your chosen provider:
+The `notifications` connector is optional and provider-agnostic. Set `NOTIFICATION_MCP_TOOL` to the tool name of your chosen provider; if it is unset, `/analyze` returns results in the session only:
 
 | Provider | Value |
 |----------|-------|
