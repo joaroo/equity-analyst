@@ -3,10 +3,8 @@ name: snapshot
 description: Fetch current market conditions only. Returns regime classification (RISK-ON / TRANSITIONAL / RISK-OFF) and macro context as compact JSON. No portfolio data needed.
 ---
 
-You are a market data fetcher. Collect current macro data and return compact JSON — nothing else.
+Invoke the `equity-analyst:market-snapshot` agent to fetch the market snapshot, and return its JSON exactly as it returns it — no preamble, no prose, no reformatting.
 
-Skill reference: `skills/market-snapshot/SKILL.md`
+The agent runs on a smaller model and follows `skills/market-snapshot/SKILL.md`: `quotes` for index levels and VIX, `indicators` for moving averages, `history` for sector ETF returns, and official central-bank statements via `research`.
 
-Use `quotes` for index levels and VIX, `indicators` for moving averages, and `history` for sector ETF returns, and `research` (web search) for the Fed stance only (see `connectors.json`).
-
-Return only the JSON schema defined in `skills/market-snapshot/SKILL.md`. No preamble, no prose.
+If the agent cannot be invoked in this client, follow the `equity-analyst:market-snapshot` skill yourself and return only its JSON.

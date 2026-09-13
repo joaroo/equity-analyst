@@ -131,7 +131,7 @@ Phase 4: format-notification (orchestrator, no sub-agent)
 ## Standalone Command Protocols
 
 ### `/snapshot`
-Invoke `skills/market-snapshot/SKILL.md`. Return JSON only — no prose. Index levels, VIX and sector returns from `quotes`/`history`; at most 2 `research` calls (Fed stance).
+Delegates to the `equity-analyst:market-snapshot` agent (Haiku) and returns its JSON only. Index levels, VIX and sector returns from `quotes`/`indicators`/`history`; central-bank stance only from official statements (at most 6 `research` calls).
 
 ### `/earnings-preview TICKER`
 Check that earnings have **not yet been reported** this quarter. If they have, halt: `Earnings already reported — run /earnings-review {TICKER} instead.`  

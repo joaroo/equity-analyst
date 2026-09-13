@@ -102,17 +102,23 @@
     {
       "name": "Sveriges Riksbank",
       "currency": "SEK",
-      "priority": 1
+      "priority": 1,
+      "official_domain": "riksbank.se",
+      "decisions_page": "https://www.riksbank.se/en-gb/press-and-published/notices-and-press-releases/"
     },
     {
       "name": "European Central Bank",
       "currency": "EUR",
-      "priority": 2
+      "priority": 2,
+      "official_domain": "ecb.europa.eu",
+      "decisions_page": "https://www.ecb.europa.eu/press/govcdec/mopo/html/index.en.html"
     },
     {
       "name": "US Federal Reserve",
       "currency": "USD",
-      "priority": 3
+      "priority": 3,
+      "official_domain": "federalreserve.gov",
+      "decisions_page": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
     }
   ],
   "macro_releases": [
