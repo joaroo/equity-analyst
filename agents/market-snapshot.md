@@ -1,6 +1,7 @@
 ---
 name: market-snapshot
 description: Read-only market regime analyst for the /analyze pipeline. Fetches home-market, European and global index trend, VIX, European sector leadership and Riksbank/ECB/Fed stance, and returns RISK-ON/TRANSITIONAL/RISK-OFF as compact JSON. Use when the orchestrator needs pre-fetched market context.
+model: haiku
 disallowedTools: Write, Edit, NotebookEdit, Agent
 skills:
   - equity-analyst:market-snapshot

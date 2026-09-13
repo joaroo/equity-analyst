@@ -1,6 +1,7 @@
 ---
 name: portfolio-manager
 description: Read-only investment committee chair for the /analyze pipeline. Given both analyst reports, the catalyst calendar and portfolio JSON, calculates regime-weighted combined scores, resolves disagreements and produces final allocation decisions and an executive summary in the base currency. Use for Phase 3 of /analyze.
+model: inherit
 disallowedTools: Write, Edit, NotebookEdit, Agent
 skills:
   - equity-analyst:portfolio-management

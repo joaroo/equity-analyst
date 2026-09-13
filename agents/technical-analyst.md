@@ -1,6 +1,7 @@
 ---
 name: technical-analyst
 description: Read-only independent technical analyst for the /analyze pipeline. Given the fundamental report, market context and portfolio JSON, evaluates trend, momentum, support/resistance and earnings-proximity risk for every stock, with AGREE/MODIFY/DISAGREE and stop-losses, ending with a <technical-json> block. Use for Phase 2 of /analyze.
+model: sonnet
 disallowedTools: Write, Edit, NotebookEdit, Agent
 skills:
   - equity-analyst:technical-analysis

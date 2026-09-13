@@ -22,7 +22,7 @@ Read `investor-profile.json` first. It defines the home market, the regional and
 3. `history` connector — 5-day returns for the European sector proxies (`range: "5d"`, `interval: "1d"`)
 4. `research` connector (WebSearch/WebFetch) — central-bank stance only
 
-Budget **one `research` call per central bank** (three by default). Each returns full page content (~10–25k chars), so keep each query to that one bank's latest decision and guidance. Structured calls are cheap: batch symbols.
+**Research budget: 4 calls** — one WebSearch per central bank (three by default), plus at most one WebFetch if a stance is still unclear. A research call is one WebSearch or one WebFetch. Each returns 10–25k characters, so research calls dominate token use. Count them as you go. When the budget is reached, stop researching and list in the output what went without research — never exceed it silently. Structured calls (`quotes`, `indicators`, `history`) are cheap: batch symbols.
 
 ## Workflow Steps
 
@@ -107,7 +107,7 @@ Return only the JSON schema below. No preamble, no prose.
 - Do not emit prose — JSON output only
 - Do not take index levels, moving averages, VIX or sector returns from search results — use `quotes`/`indicators`/`history`
 - Do not classify the regime from US signals alone — the home and European signals are required
-- Do not use more than one `research` call per central bank
+- Do not exceed 4 research calls
 - Do not classify regime with fewer than 5 of the 6 signals confirmed
 - Do not cache this output across sessions — always fetch fresh
 

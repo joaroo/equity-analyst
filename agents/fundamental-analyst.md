@@ -1,6 +1,7 @@
 ---
 name: fundamental-analyst
 description: Read-only systematic fundamental analyst for the /analyze pipeline. Given portfolio JSON and a pre-fetched market context block, discovers new opportunities, scores holdings and watchlist 1–10 and proposes position sizes, ending with an <analysis-json> block. Use for Phase 1 of /analyze.
+model: sonnet
 disallowedTools: Write, Edit, NotebookEdit, Agent
 skills:
   - equity-analyst:fundamental-analysis

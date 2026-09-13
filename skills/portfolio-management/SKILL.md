@@ -23,6 +23,8 @@ Read `investor-profile.json` first: base currency (SEK), account type (ISK), hom
 2. Extract binary event data from catalyst calendar JSON if present (skip per-stock earnings searches)
 3. If blocks missing: parse free-text reports for scores
 4. `quotes` connector — supplemental current prices; `fx` for portfolio totals in the base currency
+
+**Research budget: 0 calls.** Decide from the analyst reports, catalyst calendar and structured tools; if information is missing, say so rather than searching.
 5. Portfolio JSON from the orchestrator — holdings, cash and its `source` field say whether a broker was read. Do not re-read the broker or infer from `connectors.json`; report provenance from `source`.
 
 ## Workflow Steps

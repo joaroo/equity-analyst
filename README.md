@@ -194,7 +194,7 @@ Prices, targets and stops use each instrument's native trading currency (SEK, NO
 ## Project Structure
 
 ```
-.claude-plugin/plugin.json               # Plugin manifest (v3.0.1)
+.claude-plugin/plugin.json               # Plugin manifest (v3.0.2)
 connectors.json                          # Connector alias registry
 investor-profile.json                    # Base currency, account/tax rules, markets, sizing
 .mcp.json.example                        # MCP server wiring: market-data + broker + Slack

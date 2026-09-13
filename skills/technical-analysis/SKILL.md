@@ -18,7 +18,9 @@ description: Independent technical analysis of every stock in a fundamental repo
 1. `indicators` connector — computed SMA 20/50/200, RSI(14), MACD(12,26,9), 52-week and 20-day ranges, volume ratios (batch up to 10 symbols per call)
 2. `history` connector — daily OHLCV bars for support/resistance and pattern recognition
 3. `quotes` connector — current intraday price when it matters for entry timing
-4. `research` connector (WebSearch/WebFetch) — earnings dates and other event dates only; never prices or indicator values
+4. `research` connector (WebSearch/WebFetch) — earnings dates only for stocks the catalyst calendar does not cover; never prices or indicator values
+
+**Research budget: 1 search per stock not covered by the catalyst calendar, at most 5 in total, no WebFetch.** Everything else comes from `indicators`, `history` and `quotes`. A research call is one WebSearch or one WebFetch. Each returns 10–25k characters, so research calls dominate token use. Count them as you go. When the budget is reached, stop researching and list in the output what went without research — never exceed it silently.
 
 Symbols for `quotes` and `history` use exchange suffixes: Stockholm `VOLV-B.ST`, Helsinki `.HE`, Copenhagen `.CO`, Oslo `.OL`, Xetra `.DE`, London `.L`; US tickers take none; indices use a caret (`^GSPC`, `^VIX`, `^OMX`). A 404 usually means the wrong suffix.
 
