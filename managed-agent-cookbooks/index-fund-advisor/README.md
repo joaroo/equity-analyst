@@ -4,7 +4,7 @@ Monthly analysis of index fund portfolios in tax-advantaged accounts.
 
 ## Prerequisites
 
-- `mcp__gemini__gemini_generate` — Google Gemini with search capability
+- `market-data` — unbound; awaiting a broker MCP connector (see `.mcp.json`)
 
 ## Invocation
 

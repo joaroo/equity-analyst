@@ -1,18 +1,9 @@
 {
   "connectors": {
     "market-data": {
-      "primary": "mcp__gemini__gemini_generate",
-      "search": true,
-      "model": "gemini-3-flash-preview",
-      "purpose": "All real-time market data: prices, analyst ratings, earnings dates, macro indicators, sector performance",
-      "docs": "connectors/gemini/CONNECTOR.md"
-    },
-    "local-inference": {
-      "primary": "mcp__ollama__ollama_generate",
-      "model_list": "mcp__ollama__ollama_list_models",
-      "model_selection": "fastest-small",
-      "purpose": "Portfolio text extraction and notification message formatting",
-      "docs": "connectors/ollama/CONNECTOR.md"
+      "primary": null,
+      "status": "unbound — awaiting broker MCP connector",
+      "purpose": "All real-time market data: prices, analyst ratings, earnings dates, macro indicators, sector performance"
     },
     "notifications": {
       "primary": "${NOTIFICATION_MCP_TOOL}",

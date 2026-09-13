@@ -25,7 +25,7 @@ Skills are the source of truth. A skill file (`skills/*/SKILL.md`) defines trigg
 
 ```
 .mcp.json                        Connector alias registry — source of truth for tool routing
-.mcp.json.example                Concrete wiring example: Gemini + Ollama + Slack
+.mcp.json.example                Concrete wiring example: Slack (notifications)
 connectors/*/CONNECTOR.md        Per-provider setup docs
 commands/*.md                    Slash command entry points (thin wrappers)
 skills/*/SKILL.md                All analytical logic lives here
@@ -42,22 +42,10 @@ All data access goes through connector aliases. Never reference raw tool names i
 
 | Alias | Resolves to | Use for |
 |-------|-------------|---------|
-| `market-data` | `mcp__gemini__gemini_generate` | All live market data — prices, earnings, ratings, macro |
-| `local-inference` | `mcp__ollama__ollama_generate` | Portfolio extraction, message formatting — no search needed |
+| `market-data` | Unbound — awaiting broker MCP connector | All live market data — prices, earnings, ratings, macro |
 | `notifications` | `${NOTIFICATION_MCP_TOOL}` | Progress updates and report delivery — portfolio-manager only |
 
-**Call pattern for market-data:**
-```
-mcp__gemini__gemini_generate({
-  model: "gemini-3-flash-preview",
-  prompt: "...",
-  search: true          ← always true for market data
-})
-```
-
-**Call pattern for local-inference:**
-1. Call `mcp__ollama__ollama_list_models` first — select the fastest available small model
-2. Call `mcp__ollama__ollama_generate` with that model
+The `market-data` alias currently has no backing MCP server. If it is not resolvable at runtime, halt and report that market data is unavailable — do not fall back to training data.
 
 **Never** use `WebSearch`, `WebFetch`, or any tool not declared in `.mcp.json` for market data.
 
@@ -68,7 +56,6 @@ mcp__gemini__gemini_generate({
 | Role | Read | Write | Notify |
 |------|------|-------|--------|
 | All analyst subagents | ✅ market-data | ✗ | ✗ |
-| portfolio-extractor | ✅ local-inference | ✗ | ✗ |
 | portfolio-manager | ✅ market-data | ✅ notifications only | ✅ |
 
 If you are running as an analyst subagent, you have no write access. Do not attempt to call the notifications connector. Do not send output anywhere except back to the orchestrator.
@@ -90,11 +77,12 @@ When a command or orchestrator invokes a skill:
 
 ## Running `/analyze` (the Full Pipeline)
 
-The orchestrator (`commands/analyze.md`) runs four phases. Phase 0 is parallel; phases 1–4 are sequential.
+The orchestrator (`commands/analyze.md`) parses the portfolio input itself, then runs Phase 0 in parallel and phases 1–4 sequentially.
 
 ```
+Phase 0A (orchestrator): parse portfolio input → portfolio JSON
+
 Phase 0 (parallel):
-  A. portfolio-extractor   → portfolio JSON
   B. market-snapshot       → market context JSON  (skills/market-snapshot/SKILL.md)
   C. catalyst-scanner      → catalyst calendar JSON  (skills/catalyst-calendar/SKILL.md)
 
@@ -113,7 +101,7 @@ Phase 3: portfolio-manager
   Skill: skills/portfolio-management/SKILL.md
   Output: executive summary with position decisions
 
-Phase 4: format-notification
+Phase 4: format-notification (orchestrator, no sub-agent)
   Input: portfolio-manager output
   Task: reformat markdown to notification channel format (see commands/analyze.md Phase 4)
   Deliver via: ${NOTIFICATION_MCP_TOOL}
@@ -198,4 +186,4 @@ Never silently skip a required field. Always state why it is missing.
 3. Create `commands/{name}.md` if a slash command is needed — thin wrapper, connector alias in body, no `tools:` frontmatter
 4. Create `managed-agent-cookbooks/{name}/` with `agent.yaml`, `subagents/analyst.yaml`, `README.md` if managed deployment is needed
 5. Update `README.md` commands table and capabilities section
-6. Skills reference connector aliases only (`market-data`, `local-inference`, `notifications`) — never raw MCP tool names
+6. Skills reference connector aliases only (`market-data`, `notifications`) — never raw MCP tool names

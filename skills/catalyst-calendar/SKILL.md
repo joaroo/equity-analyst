@@ -12,7 +12,7 @@
 1. `market-data` connector (see `.mcp.json`)
 2. No fallback — all event dates must be confirmed via live search
 
-Batch searches efficiently: search multiple tickers in a single Gemini call where possible (e.g., "earnings dates for AAPL MSFT NVDA AMZN next 4 weeks").
+Batch searches efficiently: search multiple tickers in a single market-data call where possible (e.g., "earnings dates for AAPL MSFT NVDA AMZN next 4 weeks").
 
 ## Workflow Steps
 
@@ -23,7 +23,7 @@ For each ticker in holdings + watchlist, search:
 - For biotech/pharma: `[TICKER] FDA approval date PDUFA catalyst`
 - For consumer/tech: `[TICKER] product launch event conference`
 
-Batch where possible: combine 3–5 tickers per Gemini call to minimize API usage.
+Batch where possible: combine 3–5 tickers per market-data call to minimize API usage.
 
 ### Step 2 — Macro Calendar
 
@@ -131,7 +131,7 @@ Return the structured JSON schema below plus a brief text summary. The JSON is c
 - Do not mark all events HIGH — risk tier must reflect actual binary outcome potential
 - Do not generate the calendar without confirmed dates — if a date cannot be found, note "date unconfirmed" rather than estimating
 - Do not omit FOMC meetings when portfolio contains rate-sensitive positions
-- Batch Gemini calls (3–5 tickers per call) — do not make one call per ticker
+- Batch market-data calls (3–5 tickers per call) — do not make one call per ticker
 
 ## Verification Checklist
 

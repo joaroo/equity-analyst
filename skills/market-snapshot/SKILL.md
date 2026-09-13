@@ -11,7 +11,7 @@
 1. `market-data` connector (see `.mcp.json`)
 2. No fallback — market snapshot requires live search data
 
-Combine into **2–3 Gemini calls maximum** to avoid redundancy.
+Combine into **2–3 market-data calls maximum** to avoid redundancy.
 
 ## Workflow Steps
 
@@ -71,7 +71,7 @@ Return only the JSON schema below. No preamble, no prose.
 ## Anti-Patterns
 
 - Do not emit prose — JSON output only
-- Do not make more than 3 Gemini calls (combine queries)
+- Do not make more than 3 market-data calls (combine queries)
 - Do not classify regime with fewer than 3 signals confirmed
 - Do not cache this output across sessions — always fetch fresh
 

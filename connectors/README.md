@@ -6,8 +6,7 @@ Connectors are the data source layer for this plugin. Each connector is an MCP s
 
 | Alias | Provider | Role |
 |-------|----------|------|
-| `market-data` | Gemini | Real-time prices, analyst ratings, earnings, macro data |
-| `local-inference` | Ollama | Portfolio text extraction, message formatting |
+| `market-data` | Unbound — awaiting broker MCP | Real-time prices, analyst ratings, earnings, macro data |
 | `notifications` | Any chat/email MCP | Progress updates and final report delivery |
 
 ## Adding a Connector
@@ -31,4 +30,4 @@ See each provider's CONNECTOR.md for setup details. The Slack connector is the r
 
 ## Example: Full Setup
 
-See `.mcp.json.example` for a concrete wiring of all three connectors with Slack as the notification provider.
+See `.mcp.json.example` for a concrete wiring with Slack as the notification provider.

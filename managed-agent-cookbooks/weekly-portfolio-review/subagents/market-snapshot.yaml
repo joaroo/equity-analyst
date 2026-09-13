@@ -9,17 +9,13 @@ permissions:
   read_only: true
   write: false
 
-tools:
-  - mcp__gemini__gemini_generate
-  - mcp__gemini__gemini_list_models
+tools: []
 
 data_connector: market-data
-model: gemini-3-flash-preview
-search: true
 
 skill: ../../skills/market-snapshot/SKILL.md
 output_format: json-only
 
 constraints:
-  max_gemini_calls: 3
+  max_market_data_calls: 3
   output_prose: false
