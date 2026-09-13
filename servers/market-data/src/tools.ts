@@ -19,6 +19,7 @@
 
 import { performance } from 'node:perf_hooks';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { computeIndicators, type Bar } from './indicators.ts';
 import { z } from 'zod';
 
 const YAHOO_BASE = 'https://query1.finance.yahoo.com/v8/finance/chart';
@@ -28,6 +29,7 @@ const FETCH_TIMEOUT_MS = 15_000;
 // stay below the HTTP response deadline in index.ts so the result reaches the client.
 export const TOOL_DEADLINE_MS = 45_000;
 const MAX_SYMBOLS = 20;
+const MAX_INDICATOR_SYMBOLS = 10;
 const MAX_HISTORY_ROWS = 400;
 const MAX_UPSTREAM_BYTES = 5 * 1024 * 1024;
 
@@ -301,7 +303,7 @@ export function createServer(): McpServer {
   server.registerTool(
     'market_history',
     {
-      description: `Get historical OHLC bars for one security. Use for moving averages, RSI, MACD, trend, drawdown, or period-return questions instead of guessing from headlines. Returns at most ${MAX_HISTORY_ROWS} rows (the most recent); widen the interval rather than the range if you hit that.`,
+      description: `Get historical OHLCV bars for one security. Use for support/resistance, drawdown, event-day price moves, or period returns instead of guessing from headlines. For moving averages, RSI or MACD use market_indicators, which computes them. Returns at most ${MAX_HISTORY_ROWS} rows (the most recent); widen the interval rather than the range if you hit that.`,
       inputSchema: {
         symbol: symbolSchema.describe('Ticker with exchange suffix, e.g. "VOLV-B.ST"'),
         range: z.enum(RANGES).default('1mo'),
@@ -353,6 +355,97 @@ export function createServer(): McpServer {
       } catch (err) {
         return fail(`market_history failed for ${symbol}: ${errorText(err)}`);
       }
+    },
+  );
+
+  server.registerTool(
+    'market_indicators',
+    {
+      description: `Compute technical indicators from ~2 years of daily bars for up to ${MAX_INDICATOR_SYMBOLS} securities: SMA 20/50/200 with % distance, moving-average order, RSI(14, Wilder), MACD(12,26,9) with recent crossover, 52-week and 20-day high/low, volume vs 20-day average, and 20-day up/down volume ratio. Use this instead of calculating indicators from market_history bars or searching for them.`,
+      inputSchema: {
+        symbols: z
+          .array(symbolSchema)
+          .min(1)
+          .max(MAX_INDICATOR_SYMBOLS)
+          .describe('Ticker symbols including exchange suffix, e.g. ["VOLV-B.ST", "^GSPC"]'),
+      },
+      annotations: READ_ONLY,
+    },
+    async ({ symbols }, extra) => {
+      log(`indicators: ${symbols.join(', ')}`);
+      const signal = toolSignal(extra);
+
+      const results = await Promise.all(
+        symbols.map(async (symbol): Promise<{ ok: boolean; text: string }> => {
+          try {
+            const result = await fetchChart(symbol, '2y', '1d', signal);
+            const meta = result.meta as ChartMeta;
+            const stamps = result.timestamp ?? [];
+            const q = result.indicators?.quote?.[0] ?? {};
+            const bars: Bar[] = [];
+            for (let i = 0; i < stamps.length; i++) {
+              const close = q.close?.[i];
+              const high = q.high?.[i];
+              const low = q.low?.[i];
+              if (close === null || close === undefined || high === null || high === undefined || low === null || low === undefined) continue;
+              bars.push({
+                date: new Date(stamps[i] * 1000).toISOString().slice(0, 10),
+                high,
+                low,
+                close,
+                volume: q.volume?.[i] ?? null,
+              });
+            }
+            const ind = computeIndicators(bars);
+            if (!ind) return { ok: false, text: `${symbol}: FAILED — no daily bars returned` };
+
+            const vsMa = (ma: number | null) => (ma === null ? 'n/a (not enough bars)' : `${num(ma)} (price ${pct(ma, ind.close)})`);
+            const order = [
+              ['price', ind.close],
+              ['SMA20', ind.sma20],
+              ['SMA50', ind.sma50],
+              ['SMA200', ind.sma200],
+            ]
+              .filter((e): e is [string, number] => e[1] !== null)
+              .sort((a, b) => b[1] - a[1])
+              .map((e) => e[0])
+              .join(' > ');
+            const m = ind.macd;
+            const macdText = m
+              ? `MACD ${num(m.macd)} | signal ${num(m.signal)} | histogram ${m.histogram >= 0 ? '+' : ''}${num(m.histogram)}${m.crossover ? ` | ${m.crossover.direction} crossover ${m.crossover.barsAgo === 0 ? 'on the last bar' : `${m.crossover.barsAgo} bar(s) ago`}` : ' | no crossover in last 5 bars'}`
+              : 'MACD n/a (not enough bars)';
+            const range52 =
+              ind.high52w !== null && ind.low52w !== null
+                ? `52w high ${num(ind.high52w)} (price ${pct(ind.high52w, ind.close)}) / low ${num(ind.low52w)} (price ${pct(ind.low52w, ind.close)})`
+                : '52w range n/a (under 252 bars)';
+            const range20 = ind.high20d !== null && ind.low20d !== null ? `20d high ${num(ind.high20d)} / low ${num(ind.low20d)}` : '20d range n/a';
+            const volume = [
+              ind.volumeVs20dAvg !== null ? `last volume ${ind.volumeVs20dAvg.toFixed(2)}x 20d avg` : 'volume vs avg n/a',
+              ind.upDownVolumeRatio20d !== null ? `20d up/down volume ${ind.upDownVolumeRatio20d.toFixed(2)}` : 'up/down volume n/a',
+            ].join(' | ');
+
+            return {
+              ok: true,
+              text: [
+                `${meta.symbol ?? symbol} — ${meta.currency ?? ''} on ${meta.fullExchangeName ?? 'unknown exchange'}, as of ${ind.asOf} close, ${ind.bars} daily bars`,
+                `  Close ${num(ind.close)} | SMA20 ${vsMa(ind.sma20)} | SMA50 ${vsMa(ind.sma50)} | SMA200 ${vsMa(ind.sma200)}`,
+                `  Order: ${order}`,
+                `  RSI14 ${ind.rsi14 === null ? 'n/a' : ind.rsi14.toFixed(1)} | ${macdText}`,
+                `  ${range52} | ${range20}`,
+                `  ${volume}`,
+              ].join('\n'),
+            };
+          } catch (err) {
+            return { ok: false, text: `${symbol}: FAILED — ${errorText(err)}` };
+          }
+        }),
+      );
+
+      const succeeded = results.filter((r) => r.ok).length;
+      log(`indicators done: ${succeeded}/${symbols.length} ok`);
+      const text = results.map((r) => r.text).join('\n\n');
+      if (succeeded === 0) return fail(text);
+      return ok(succeeded < symbols.length ? `${text}\n\n${symbols.length - succeeded} of ${symbols.length} symbols failed.` : text);
     },
   );
 
