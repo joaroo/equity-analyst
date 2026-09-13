@@ -124,7 +124,7 @@ Phase 4: format-notification (orchestrator, no sub-agent)
 - Phase 1 must receive the market context labeled exactly as `## MARKET CONTEXT (PRE-FETCHED):` — the fundamental-analysis skill skips macro searches when this header is present
 - Phase 2 must receive the full Phase 1 report including the `<analysis-json>` block — the technical-analysis skill reads fundamental scores from it
 - Phase 3 must receive both `<analysis-json>` and `<technical-json>` blocks — the portfolio-management skill uses them for combined score calculation
-- Catalyst calendar JSON from Phase 0C must be passed to Phase 3 — it replaces per-stock earnings searches in the portfolio-manager
+- Catalyst calendar JSON from Phase 0C must be passed to Phases 1, 2 and 3 — it replaces per-stock earnings-date searches for holdings and watchlist stocks
 
 ---
 
@@ -161,7 +161,7 @@ These apply to every skill, every time:
 3. **No fabricated peers** — comparable companies in valuation comps must be real, publicly traded, and searchable. Do not invent tickers.
 4. **No score manipulation for narrative** — scores are calculated from the formula in the skill file. Do not adjust scores to match a preferred conclusion.
 5. **Currency accuracy** — prices, targets and stops in each instrument's native trading currency (SEK Nasdaq Stockholm, NOK Oslo, DKK Copenhagen, EUR Helsinki/Xetra/Euronext, GBP London, USD US exchanges); cash, allocations, portfolio value and P&L in the base currency from `investor-profile.json`, converted with `fx`. Never write `$` for a non-USD amount.
-6. **Verdicts are bounded** — portfolio-manager outputs one of: Strong Buy / Conditional / Binary Event Special Case / Skip. Valuation outputs one of: Cheap / Fair / Expensive. Earnings review outputs one of: Hold / Add / Trim / Exit. No other verdict categories.
+6. **Verdicts are bounded** — portfolio-manager uses only: Strong Buy / Conditional Buy / Binary Event Special Case / Skip for new money, Keep Watching / Stop Watching for unbought watchlist stocks, and Hold / Add / Trim / Exit for existing positions. Valuation outputs one of: Cheap / Fair / Expensive. Earnings review outputs one of: Hold / Add / Trim / Exit. No other verdict categories.
 
 ---
 

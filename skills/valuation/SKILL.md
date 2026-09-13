@@ -41,6 +41,10 @@ Take the current price from `quotes`. Search `[TICKER] shares outstanding market
 - Current market cap (recompute as price × diluted shares when the searched figure is stale)
 - Enterprise value (market cap + net debt, or search directly)
 
+**Captive finance arms.** Truck, auto, equipment and some industrial companies (e.g. Volvo, Daimler Truck, Traton, PACCAR, CNH, Deere) run finance subsidiaries whose debt funds customer loans and leases. Consolidated net debt and EV then overstate leverage. For these companies:
+- Use **industrial operations** net debt / net financial position excluding financial services (search `[COMPANY] industrial operations net financial position excluding financial services`) and industrial EBITDA for EV-based metrics — for the target and every peer
+- If industrial figures cannot be found for a company, mark its EV/EBITDA, EV/Revenue and DCF equity bridge as **distorted** and rely on P/E and P/S for it
+
 Search `[TICKER] analyst price target consensus`:
 - Average analyst price target
 - Upside/downside to consensus target
@@ -57,11 +61,11 @@ Search `[TICKER] comparable companies peers sector`:
 
 ### Step 3 — Peer Multiples Table
 
-For each peer, search `[PEER_TICKER] EV/EBITDA P/E price to sales forward multiple`:
+For each peer, search `[PEER_TICKER] EV/EBITDA P/E price to sales forward multiple` and take its current price from `quotes`. Apply the captive-finance rule to peers too — multiples from data sites use consolidated EV.
 
-Build the comps table:
+Build the comps table. Show revenue in the **base currency** (SEK by default), converted with `fx`, so peers are comparable; multiples are currency-neutral.
 
-| Ticker | Revenue ($B) | Rev Growth | EBITDA Margin | EV/EBITDA | P/E (FWD) | EV/Revenue | P/S |
+| Ticker | Revenue (B SEK) | Rev Growth | EBITDA Margin | EV/EBITDA | P/E (FWD) | EV/Revenue | P/S |
 |--------|-------------|------------|---------------|-----------|-----------|------------|-----|
 | [TICKER] | X | X% | X% | X.Xx | X.Xx | X.Xx | X.Xx |
 | [PEER 1] | X | X% | X% | X.Xx | X.Xx | X.Xx | X.Xx |
@@ -112,10 +116,12 @@ Use 3 scenarios. Pull analyst consensus for revenue/earnings estimates where ava
 
 ### Step 6 — Synthesis and Verdict
 
-Combine comps and DCF to produce an intrinsic value range:
-- Low end: bear DCF or comps low
-- High end: bull DCF or comps high
-- Central estimate: average of base DCF and comps median implied
+First, list any method you flagged as **distorted** (captive finance, trough earnings, one-off items, a peer multiple that is an outlier by more than 2x the median) and exclude it — a method you would caveat as unreliable must not drive the verdict.
+
+Then combine the remaining methods to produce an intrinsic value range:
+- Low end: bear DCF or comps low (undistorted methods only)
+- High end: bull DCF or comps high (undistorted methods only)
+- Central estimate: average of base DCF and comps median implied — if the DCF is distorted, use the comps median (from undistorted multiples) alone and say so; if both are distorted, state that no reliable central estimate exists and give the verdict as "Fair" only if price is within the plausible range, with the uncertainty stated
 
 Compare to current price:
 - Premium: current price is X% above central estimate → [Expensive]
@@ -158,8 +164,10 @@ Pick peers from the same region first (Nordic, then European), and add global pe
 
 ### Comparable Companies
 
-| Ticker | Rev ($B) | Rev Growth | EBITDA Margin | EV/EBITDA | Fwd P/E | EV/Rev |
-|--------|----------|------------|---------------|-----------|---------|--------|
+*Revenue in the base currency (B SEK), converted with `fx` at [date]. EV multiples use industrial net debt for captive-finance companies; mark any that could not be adjusted as (distorted).*
+
+| Ticker | Rev (B SEK) | Rev Growth | EBITDA Margin | EV/EBITDA | Fwd P/E | EV/Rev |
+|--------|-------------|------------|---------------|-----------|---------|--------|
 | [TICKER] | X | X% | X% | X.Xx | X.Xx | X.Xx |
 | [PEER 1] | X | X% | X% | X.Xx | X.Xx | X.Xx |
 | [PEER 2] | X | X% | X% | X.Xx | X.Xx | X.Xx |
@@ -180,12 +188,14 @@ Pick peers from the same region first (Nordic, then European), and add global pe
 ---
 
 ### Intrinsic Value Summary
-| Method | Implied Value |
-|--------|---------------|
-| Comps (median) | XX.XX [CCY] |
-| DCF (base) | XX.XX [CCY] |
-| **Central Estimate** | **XX.XX [CCY]** |
-| **Range** | **XX [CCY] — XX [CCY]** |
+| Method | Implied Value | Used in central estimate |
+|--------|---------------|--------------------------|
+| Comps (median, undistorted multiples) | XX.XX [CCY] | Yes / No — [reason] |
+| DCF (base) | XX.XX [CCY] | Yes / No — [reason] |
+| **Central Estimate** | **XX.XX [CCY]** | |
+| **Range** | **XX [CCY] — XX [CCY]** | |
+
+**Excluded as distorted:** [method and reason, or "none"]
 
 **Current Price vs. Central Estimate: [+/-X%] → [Cheap / Fair / Expensive]**
 **Analyst Consensus Target: XX [CCY] ([+/-X%] upside)**
@@ -207,6 +217,9 @@ Pick peers from the same region first (Nordic, then European), and add global pe
 - Never apply P/E to pre-profit or high-growth companies (use EV/Revenue or EV/EBITDA instead)
 - Never treat the DCF as precise — it is a range, not a price target
 - Never select peers with fundamentally different business models (don't compare a SaaS company to a hardware company)
+- Never use consolidated net debt or EV for companies with captive finance arms
+- Never include a method you have flagged as distorted in the central estimate
+- Never show peer figures in a currency other than the base currency or the company's own currency
 - Do not issue a buy/sell recommendation — that is the portfolio-management skill's job. This skill outputs: Cheap / Fair / Expensive + the range.
 
 ## Verification Checklist
@@ -216,6 +229,8 @@ Pick peers from the same region first (Nordic, then European), and add global pe
 - [ ] 4–5 comparable peers identified with similar scale and business model
 - [ ] Peer multiples table has at least 3 populated peers
 - [ ] All 3 DCF scenarios use different growth assumptions (not the same)
-- [ ] Central estimate calculated as average of base DCF and comps median
+- [ ] Captive-finance companies (target and peers) use industrial net debt/EV, or those metrics are marked distorted
+- [ ] Central estimate uses only undistorted methods, with any exclusion stated
+- [ ] Peer revenue shown in the base currency
 - [ ] Verdict is one of: Cheap / Fair / Expensive
 - [ ] Currency stated clearly

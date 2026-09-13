@@ -23,7 +23,7 @@ Read `investor-profile.json` first: base currency (SEK), account type (ISK), hom
 2. Extract binary event data from catalyst calendar JSON if present (skip per-stock earnings searches)
 3. If blocks missing: parse free-text reports for scores
 4. `quotes` connector — supplemental current prices; `fx` for portfolio totals in the base currency
-5. `portfolio` connector — current holdings and cash, if the analyst reports lack them (read tools only)
+5. Portfolio JSON from the orchestrator — holdings, cash and its `source` field say whether a broker was read. Do not re-read the broker or infer from `connectors.json`; report provenance from `source`.
 
 ## Workflow Steps
 
@@ -61,6 +61,22 @@ Round to 1 decimal place.
 | TICKER | Growth/Value | X.X/10 | X.X/10 | XX% | XX% | X.X/10 |
 
 ### Step 3 — Decision Categories
+
+Every row in the report gets exactly one label from this closed set — no other wording (not "BUY", "TACTICAL BUY", "ACCUMULATE"):
+
+| Applies to | Allowed labels |
+|---|---|
+| New money — new ideas and watchlist stocks | ✅ STRONG BUY · ⚠️ CONDITIONAL BUY · 🎯 BINARY EVENT SPECIAL CASE · ❌ SKIP |
+| Watchlist stocks not bought | 👀 KEEP WATCHING · 🚫 STOP WATCHING |
+| Existing positions | HOLD · ADD · TRIM · EXIT |
+
+Assignment for new money:
+- **STRONG BUY:** combined score ≥ regime threshold AND both analysts support it (fundamental ≥ threshold and technical AGREE) AND no unacceptable timing issue
+- **CONDITIONAL BUY:** combined score ≥ regime threshold but one analyst is cautious (technical MODIFY, or one leg below threshold), OR combined score within 0.5 below threshold with a concrete trigger to act — always state the reduced size or the trigger
+- **BINARY EVENT SPECIAL CASE:** combined ≥ 6.5 with an earnings/regulatory event within 3 days (rules below)
+- **SKIP:** everything else
+
+A stock above threshold carried mainly by one analyst is CONDITIONAL BUY at reduced size, not a separate category.
 
 **✅ STRONG BUY** — Deploy full recommended allocation
 
@@ -109,7 +125,7 @@ Criteria: Combined score below threshold, both analysts skeptical, or critical r
 
 ---
 
-**🏦 WATCHING STOCK** — Buy / Keep Watching / Stop Watching
+**🏦 WATCHING STOCK** — STRONG BUY / CONDITIONAL BUY / KEEP WATCHING / STOP WATCHING
 
 Show: watching since date, price at watch start, current price, change since watch start, combined score, action + rationale.
 
@@ -265,11 +281,13 @@ Close with: "Decision Finalized: [date]", "Next Review: [trigger or date]", "Inv
 - Never calculate combined scores without identifying stock type (Growth vs Value) first
 - Never express risk thresholds or allocations as fixed currency amounts — use percentages of portfolio value or available cash
 - Never use tax arguments that do not apply to an ISK
+- Never invent decision labels — use only the closed set in Step 3
 - Never call write tools on the `portfolio` connector (orders, trade tickets, alerts, watchlists) — output recommendations only
 
 ## Verification Checklist
 
 - [ ] Combined scores calculated correctly with regime-appropriate weights
+- [ ] Every decision label is from the closed set in Step 3
 - [ ] Every allocation decision has specific rationale
 - [ ] All disagreements between analysts resolved explicitly
 - [ ] Cash position justified if >30%

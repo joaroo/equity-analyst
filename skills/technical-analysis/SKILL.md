@@ -11,6 +11,7 @@ description: Independent technical analysis of every stock in a fundamental repo
 - Requires: fundamental analyst report (including `<analysis-json>` block) + market context JSON
 - Do NOT invoke without the fundamental analyst's report — technical scoring depends on fundamental scores and regime
 - If a `## MARKET CONTEXT (PRE-FETCHED):` block is present, skip portfolio-level macro searches
+- If a `## CATALYST CALENDAR (PRE-FETCHED):` block is present, do not search earnings dates for stocks it covers
 
 ## Data Source Priority
 
@@ -112,7 +113,7 @@ Neutral: Symmetrical triangle, Rectangle, Tight consolidation.
 
 ### Step 5 — Timing Red Flags
 
-Use the catalyst calendar if present; otherwise look up the date with `research` (one ticker per query):
+Use the `## CATALYST CALENDAR (PRE-FETCHED):` block if present — it covers every holding and watchlist stock for 28 days, so a stock absent from it has no event in that window; look up dates with `research` (one ticker per query) only for new candidates it does not cover:
 
 **Earnings Proximity Risk:**
 - 0–3 days: 🚨🚨🚨 EXTREME RISK — do not enter (binary event)
