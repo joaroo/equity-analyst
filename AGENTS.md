@@ -28,6 +28,7 @@ connectors.json                  Connector alias registry — source of truth fo
 investor-profile.json            Investor context — base currency, account/tax rules, markets, sizing
 .mcp.json.example                Concrete wiring example: Slack (notifications)
 connectors/*/CONNECTOR.md        Per-provider setup docs
+agents/*.md                      Plugin subagents for /analyze (read-only, preload their skill)
 commands/*.md                    Slash command entry points (thin wrappers)
 skills/*/SKILL.md                All analytical logic lives here
 managed-agent-cookbooks/         Orchestrator + subagent YAMLs for managed deployment
@@ -49,7 +50,7 @@ All data access goes through connector aliases. Never reference raw tool names i
 | `indicators` | `market_indicators` on the market-data MCP | Computed SMA 20/50/200, RSI(14), MACD(12,26,9), 52w/20d ranges, volume ratios |
 | `fx` | `fx_rate` on the market-data MCP | Every currency conversion (latest or dated) |
 | `research` | Built-in `WebSearch`, then `WebFetch` | Fundamentals, analyst ratings/targets, earnings dates/estimates/results, guidance, Fed stance, catalysts, mutual fund NAVs |
-| `notifications` | `${NOTIFICATION_MCP_TOOL}` | Progress updates and report delivery — portfolio-manager only |
+| `notifications` | `${NOTIFICATION_MCP_TOOL}` (optional) | Progress updates and report delivery — orchestrator only, skipped when not configured |
 
 MCP tool names carry a client-specific prefix (Claude Code: `mcp__<server>__<tool>`); resolve aliases by the tool name.
 
@@ -65,11 +66,12 @@ MCP tool names carry a client-specific prefix (Claude Code: `mcp__<server>__<too
 
 | Role | Read | Write | Notify |
 |------|------|-------|--------|
-| Orchestrator (`/analyze`) | ✅ portfolio (read tools only) | ✗ | ✅ milestones |
-| Analyst subagents | ✅ quotes / history / indicators / fx / research (per YAML) | ✗ | ✗ |
-| portfolio-manager | ✅ quotes, fx | ✅ notifications only | ✅ |
+| Orchestrator (`/analyze`) | ✅ portfolio (accounts, holdings, watchlists — read tools only) | ✗ | ✅ if configured |
+| Subagents (`agents/*.md`) | ✅ quotes / history / indicators / fx / research | ✗ | ✗ |
 
-If you are running as an analyst subagent, you have no write access. Do not attempt to call the notifications connector. Do not send output anywhere except back to the orchestrator.
+Subagents are defined in `agents/` and invoked as `equity-analyst:<name>`: `market-snapshot`, `catalyst-scanner`, `fundamental-analyst`, `technical-analyst`, `portfolio-manager`. Each preloads its skill and denies file writes and further agent spawning. Plugin agents cannot restrict MCP servers, so broker write tools must also be blocked in the client's connector permissions.
+
+If you are running as a subagent, you have no write access. Do not call notification or broker write tools. Do not send output anywhere except back to the orchestrator.
 
 ---
 
@@ -115,7 +117,7 @@ Phase 3: portfolio-manager
 Phase 4: format-notification (orchestrator, no sub-agent)
   Input: portfolio-manager output
   Task: reformat markdown to notification channel format (see commands/analyze.md Phase 4)
-  Deliver via: ${NOTIFICATION_MCP_TOOL}
+  Deliver via: ${NOTIFICATION_MCP_TOOL} if configured; always return the report in the response
 ```
 
 **Critical handoff rules:**
@@ -181,7 +183,7 @@ Never silently skip a required field. Always state why it is missing.
 
 - Using training-data knowledge for revenue, earnings, or price — prices from `quotes`, financials from `research`
 - Taking a price, index level or indicator value from a search result
-- Calling `notifications` connector from an analyst subagent
+- Calling the `notifications` connector or broker write tools from a subagent
 - Skipping the market context pre-fetch header check (causes redundant macro searches)
 - Collapsing the technical score to 1–2/10 because of an upcoming earnings event (see `skills/technical-analysis/SKILL.md` binary event handling)
 - Comparing peers with different business models in valuation comps (SaaS vs hardware, for example)

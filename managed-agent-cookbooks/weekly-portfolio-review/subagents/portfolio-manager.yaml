@@ -3,21 +3,17 @@ description: |
   Investment Committee Chairman. Synthesizes fundamental and technical analyst reports
   into final allocation decisions. Calculates regime-weighted combined scores, reconciles
   analyst disagreements, handles binary events, and produces an actionable executive summary.
-  WRITE agent — the only subagent with permission to send notifications (chat or email).
+  Read-only — returns the report to the orchestrator, which handles any notifications.
 
 permissions:
-  read_only: false
-  write: true
-  write_scope:
-    - "${NOTIFICATION_MCP_TOOL}"
+  read_only: true
+  write: false
 
 tools:
   - mcp__market-data__market_quote
   - mcp__market-data__fx_rate
-  - "${NOTIFICATION_MCP_TOOL}"
 
 data_connectors: [quotes, fx]
-notification_connector: notifications
 
 skill: ../../skills/portfolio-management/SKILL.md
 
@@ -30,4 +26,4 @@ output_format: full-executive-summary-markdown
 
 constraints:
   requires_both_analyst_reports: true
-  sends_notification_on_completion: true
+  sends_notification_on_completion: false

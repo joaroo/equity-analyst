@@ -4,20 +4,25 @@
     "portfolio": {
       "primary": null,
       "status": "unbound — choose a broker MCP (see connectors/README.md)",
-      "purpose": "Read-only portfolio state: accounts, holdings, cost basis, cash per currency. Replaces pasting the portfolio in by hand.",
+      "purpose": "Read-only portfolio state: accounts, holdings, cost basis, cash per currency, and watchlists. Replaces pasting the portfolio in by hand. Read by the /analyze orchestrator only.",
       "read_tools_only": true,
       "example_providers": {
         "montrose": [
           "get_user_accounts",
-          "get_holdings"
+          "get_holdings",
+          "get_watchlists",
+          "get_watchlist"
         ],
         "ibkr": [
           "get_account_positions",
           "get_account_balances",
-          "get_account_summary"
+          "get_account_summary",
+          "get_watchlists",
+          "get_watchlist"
         ]
       },
-      "fallback": "If unbound or failing, parse portfolio text the user provides and say so in the report."
+      "fallback": "If unbound or failing, parse portfolio text the user provides and say so in the report.",
+      "block_write_tools_in_client": "Set every write/delete tool of the broker connector to never allowed in the client's tool permissions (e.g. claude.ai connector settings). Set the read tools above to always allowed so scheduled runs are not blocked by approval prompts."
     },
     "quotes": {
       "server": "market-data",
@@ -51,13 +56,15 @@
     },
     "notifications": {
       "primary": "${NOTIFICATION_MCP_TOOL}",
-      "purpose": "Progress updates and final report delivery. Set NOTIFICATION_MCP_TOOL to your provider's tool name (e.g. mcp__slack__slack_post_message).",
+      "purpose": "Optional progress updates and final report delivery, sent only by the /analyze orchestrator. Set NOTIFICATION_MCP_TOOL to your provider's tool name (e.g. mcp__slack__slack_post_message).",
       "docs": "connectors/slack/CONNECTOR.md",
       "example_providers": {
         "slack": "mcp__slack__slack_post_message",
         "telegram": "mcp__telegram__send_message",
         "gmail": "mcp__gmail__send_email"
-      }
+      },
+      "optional": true,
+      "enabled_when": "NOTIFICATION_MCP_TOOL is set and that tool is available in the session; otherwise notifications are skipped and results are returned in the response."
     }
   },
   "tool_name_resolution": "MCP tools appear with a client-specific prefix (Claude Code: mcp__<server>__<tool>; claude.ai/Cowork connectors use the connector name). Resolve an alias by its tool name suffix.",
@@ -67,6 +74,6 @@
     "Use research (WebSearch/WebFetch) only for data no structured tool provides, and label it search-derived",
     "Never call write tools on the portfolio connector (orders, trade tickets, alerts, watchlist edits)",
     "Do not hardcode model names in skills or commands — use connector aliases only",
-    "Do not call the notifications connector from read-only subagents — only portfolio-manager may write"
+    "Only the /analyze orchestrator reads the portfolio connector and sends notifications — every subagent is read-only"
   ]
 }

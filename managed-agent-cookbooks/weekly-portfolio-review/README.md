@@ -1,6 +1,6 @@
 # Cookbook: Weekly Portfolio Review
 
-Full weekly stock analysis pipeline — from raw portfolio text to formatted notification delivery.
+Full weekly stock analysis pipeline — from broker holdings (or pasted portfolio text) to a final report, optionally delivered as a notification.
 
 ## Pipeline
 
@@ -16,11 +16,11 @@ portfolio connector (broker, read-only) — or portfolio text in the prompt
               │
     technical-analyst ───────────────────────── Phase 2
               │
-    portfolio-manager (+ notify) ────────────── Phase 3
+    portfolio-manager ───────────────────────── Phase 3
               │
-    orchestrator formats notification ───────── Phase 4
+    orchestrator delivers report ────────────── Phase 4
               │
-    Notification delivery (chat or email)
+    Response (+ optional chat or email notification)
 ```
 
 ## Prerequisites
@@ -29,7 +29,7 @@ The following MCP connectors must be configured:
 - market-data MCP — backs `quotes`, `history`, `indicators`, `fx` (see `connectors/market-data/CONNECTOR.md`)
 - Built-in `WebSearch` / `WebFetch` — backs `research` (fundamentals, ratings, events, Fed)
 - Optional broker MCP — backs `portfolio` (read tools only); without it, provide the portfolio in the prompt
-- `${NOTIFICATION_MCP_TOOL}` — any chat or email MCP provider (e.g. Telegram, Slack, email). Set the `NOTIFICATION_MCP_TOOL` environment variable to the MCP tool name for your provider.
+- Optional: `${NOTIFICATION_MCP_TOOL}` — any chat or email MCP provider (e.g. Telegram, Slack, email). Without it, results are returned in the session.
 
 ## Invocation
 
@@ -54,18 +54,18 @@ Or ask it to read from a file: "Read my portfolio from ~/Finance/holdings.txt"
 
 | Subagent | Read | Write | MCP Access |
 |----------|------|-------|------------|
-| orchestrator | ✅ | ❌ | portfolio (read tools only) |
+| orchestrator | ✅ | ❌ (notifications if configured) | portfolio: accounts, holdings, watchlists (read tools only) |
 | market-snapshot | ✅ | ❌ | quotes, indicators, history, web search |
 | catalyst-scanner | ✅ | ❌ | web search |
 | fundamental-analyst | ✅ | ❌ | quotes, indicators, fx, web search |
 | technical-analyst | ✅ | ❌ | quotes, indicators, history, web search |
-| portfolio-manager | ✅ | ✅ (notifications only) | quotes, fx + notification connector |
+| portfolio-manager | ✅ | ❌ | quotes, fx |
 
-Only `portfolio-manager` can trigger notifications. Read-only analysts cannot cause side effects.
+All subagents are read-only. Only the orchestrator sends notifications. In Claude Code and Cowork these subagents are the plugin agents in `agents/`; this YAML is a template for the Managed Agents API.
 
 ## Output
 
-A formatted executive summary delivered via the configured notification channel with:
+A formatted executive summary, returned in the session and optionally sent to the notification channel, with:
 - Market regime classification
 - Final allocation table with combined scores
 - Urgent action checklist (earnings today, stops to set)
