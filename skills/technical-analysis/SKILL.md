@@ -38,6 +38,8 @@ Based on the market regime from fundamental analysis, the technical score is wei
 
 In momentum markets, entry timing can make or break performance — be thorough.
 
+**Research sources.** WebFetch only pages on the domains in `research_sources.fetch_allowed` (`investor-profile.json`) — each new domain triggers an approval prompt that would stall a scheduled run. Prefer those domains in WebSearch (`allowed_domains`) when they cover the need. If nothing on the list has it, record "not found" rather than fetching another site.
+
 ## Workflow Steps
 
 Analyze EACH stock: existing holdings + new recommendations + **all watching stocks**.

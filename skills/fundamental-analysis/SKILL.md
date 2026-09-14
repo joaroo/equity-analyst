@@ -63,6 +63,8 @@ When a `## MARKET CONTEXT (PRE-FETCHED):` block is present: skip macro lookups e
 | Central-bank policy | `research`: one query per bank (Riksbank, ECB, Fed) |
 | Sector performance | `history`: European sector proxies from `investor-profile.json`, 5d/1d |
 
+**Research sources.** WebFetch only pages on the domains in `research_sources.fetch_allowed` (`investor-profile.json`) — each new domain triggers an approval prompt that would stall a scheduled run. Prefer those domains in WebSearch (`allowed_domains`) when they cover the need. If nothing on the list has it, record "not found" rather than fetching another site.
+
 ## Workflow Steps
 
 ### Step 0 — Market Regime Classification

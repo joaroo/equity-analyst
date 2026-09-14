@@ -38,6 +38,8 @@ Show each fund's NAV in its own currency (most Swedish funds quote in SEK; UCITS
 - The account is taxed on its value each year regardless of return, so fund fees and idle cash are the main controllable drags.
 - Only ISK-eligible funds and UCITS ETFs tradable at the broker. US-domiciled ETFs (e.g. VTI, VOO, BND) are not available to EU retail investors — never recommend them; suggest UCITS equivalents.
 
+**Research sources.** WebFetch only pages on the domains in `research_sources.fetch_allowed` (`investor-profile.json`) — each new domain triggers an approval prompt that would stall a scheduled run. Prefer those domains in WebSearch (`allowed_domains`) when they cover the need. If nothing on the list has it, record "not found" rather than fetching another site.
+
 ## Workflow Steps
 
 ### Step 1 — Current Performance Analysis

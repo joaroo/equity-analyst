@@ -27,6 +27,8 @@ Neither broker provides fundamentals or analyst consensus.
 
 **Tool permissions.** Plugin agents cannot restrict MCP servers, so enforce read-only in the client: in the broker connector's tool permissions, set every write/delete tool (trade tickets, alerts, watchlist changes) to never allowed, and set the read tools above to always allowed — scheduled runs cannot answer approval prompts.
 
+**Web research domains.** `research` may only fetch pages from `research_sources.fetch_allowed` in `investor-profile.json`. Approve each of those domains once in Cowork before scheduling runs.
+
 **Account and watchlist selection.** Set `portfolio.account` and `portfolio.watchlist` in `investor-profile.json` when the broker has more than one ISK account or watchlist.
 
 ## Adding a Connector

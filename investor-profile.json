@@ -122,6 +122,22 @@
       "decisions_page": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
     }
   ],
+  "research_sources": {
+    "_about": "The only domains research may fetch pages from (WebFetch). Each needs a one-time approval in Cowork, so a fixed list keeps scheduled runs from stalling on new-domain prompts. WebSearch may search anywhere, but prefer these domains (allowed_domains) when they cover the need. All were checked to accept Claude's user agent; marketscreener.com, news.cision.com, sec.gov, macrotrends.net and morningstar.com were excluded because they return 403 to it.",
+    "fetch_allowed": {
+      "stockanalysis.com": "Fundamentals, statistics, analyst consensus and forecasts — global, including Nordic listings",
+      "investing.com": "Consensus estimates, earnings calendar, economic calendar",
+      "finance.yahoo.com": "Earnings dates and analyst summary (prices still come from quotes)",
+      "placera.se": "Swedish market news, report previews and reactions",
+      "di.se": "Swedish business news (some articles paywalled — rely on search highlights then)",
+      "mfn.se": "Nordic company press releases and interim reports",
+      "scb.se": "Swedish CPI/CPIF and statistics release calendar",
+      "riksbank.se": "Riksbank decisions and calendar",
+      "ecb.europa.eu": "ECB decisions and calendar",
+      "federalreserve.gov": "FOMC statements and calendar"
+    },
+    "when_not_covered": "If search highlights are insufficient and no listed domain has the page, record the field as \"not found\" with the reason — do not fetch an unlisted domain. Suggest a domain to add in the output instead."
+  },
   "macro_releases": [
     "Swedish CPI/CPIF (Statistics Sweden, SCB)",
     "Euro area HICP flash (Eurostat)",
