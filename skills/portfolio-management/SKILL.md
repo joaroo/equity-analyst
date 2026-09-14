@@ -48,6 +48,13 @@ This determines scoring weights:
 
 Growth stocks in bull markets = timing is everything (tech has more say). Value stocks in bear markets = safety is everything (fundamental has more say).
 
+### Event Horizon Rule
+
+The catalyst calendar covers 28 days. Events inside it (confirmed dates) may drive sizing, binary-event handling and cash decisions. Events **beyond** it:
+- may be mentioned only as "beyond the catalyst window — not confirmed", with the source if an analyst report cites one;
+- must not be the main justification for holding cash, reducing size or skipping an idea;
+- belong in "Next Review" / "Next 2 weeks" as a reason to re-run the catalyst scan closer to the date.
+
 ### Step 2 — Calculate Combined Scores
 
 For EACH opportunity (existing holdings + new buys + **watching stocks**):
@@ -79,6 +86,17 @@ Assignment for new money:
 - **SKIP:** everything else
 
 A stock above threshold carried mainly by one analyst is CONDITIONAL BUY at reduced size, not a separate category.
+
+Common cases that tempt an invented label — map them like this:
+
+| Situation | Label | Put the nuance in |
+|---|---|---|
+| Watch price hit but chart not confirming | 👀 KEEP WATCHING | the rationale + the concrete trigger (e.g. "buy on 20-day MA reclaim above X") |
+| Good score but no capital or position cap blocks it | ❌ SKIP | the rationale ("capital constraint, not conviction") |
+| Want a starter now and more later | ⚠️ CONDITIONAL BUY | the size now and the trigger for the rest |
+| Hold an existing position with a tighter/trailing stop | HOLD | the stop column |
+
+Words like WAIT, TACTICAL BUY, ACCUMULATE, WATCH, HOLD+ or BUY-ON-DIP are never labels. Before emitting the report, check every Decision cell against the table above and replace anything else.
 
 **✅ STRONG BUY** — Deploy full recommended allocation
 
@@ -284,12 +302,14 @@ Close with: "Decision Finalized: [date]", "Next Review: [trigger or date]", "Inv
 - Never express risk thresholds or allocations as fixed currency amounts — use percentages of portfolio value or available cash
 - Never use tax arguments that do not apply to an ISK
 - Never invent decision labels — use only the closed set in Step 3
+- Never justify cash or sizing mainly with events beyond the 28-day catalyst window
 - Never call write tools on the `portfolio` connector (orders, trade tickets, alerts, watchlists) — output recommendations only
 
 ## Verification Checklist
 
 - [ ] Combined scores calculated correctly with regime-appropriate weights
 - [ ] Every decision label is from the closed set in Step 3
+- [ ] Events beyond the catalyst window are labelled as such and not used as the main justification
 - [ ] Every allocation decision has specific rationale
 - [ ] All disagreements between analysts resolved explicitly
 - [ ] Cash position justified if >30%

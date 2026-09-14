@@ -10,10 +10,11 @@ permissions:
   write: false
 
 tools:
+  - mcp__market-data__central_bank_rates
   - WebSearch
   - WebFetch
 
-data_connectors: [research]
+data_connectors: [rates, research]
 
 skill: ../../skills/catalyst-calendar/SKILL.md
 
