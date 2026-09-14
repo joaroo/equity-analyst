@@ -23,6 +23,8 @@ One ticker per search. `research` ranks pages by how well they match a single su
 
 **1 call per holding and watchlist ticker (+1 only for a regulatory or thesis-critical catalyst), plus at most 5 for the macro calendar, plus at most 3 WebFetch calls in total** to confirm dates that search highlights leave unclear. A research call is one WebSearch or one WebFetch. Each returns 10–25k characters, so research calls dominate token use. Count them as you go. When the budget is reached, stop researching and list in the output what went without research — never exceed it silently. Unconfirmed dates are recorded as "date unconfirmed".
 
+**Research sources.** WebFetch only pages on the domains in `research_sources.fetch_allowed` (`investor-profile.json`) — each new domain triggers an approval prompt that would stall a scheduled run. Prefer those domains in WebSearch (`allowed_domains`) when they cover the need. If nothing on the list has it, record "not found" rather than fetching another site.
+
 ## Workflow Steps
 
 ### Step 1 — Per-Ticker Event Search

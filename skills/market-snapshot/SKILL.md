@@ -25,6 +25,8 @@ Read `investor-profile.json` first. It defines the home market, the regional and
 
 **Research budget: 2 calls, usually 0.** Rates and stance come from `rates`. Spend research calls only to read the official statement (`official_domain` / `decisions_page` in `investor-profile.json`) of a bank whose rate changed within the last 45 days, to add its forward guidance. A research call is one WebSearch or one WebFetch. Each returns 10–25k characters, so research calls dominate token use. Count them as you go. When the budget is reached, stop researching and list in the output what went without research — never exceed it silently. Structured calls (`quotes`, `indicators`, `history`) are cheap: batch symbols.
 
+**Research sources.** WebFetch only pages on the domains in `research_sources.fetch_allowed` (`investor-profile.json`) — each new domain triggers an approval prompt that would stall a scheduled run. Prefer those domains in WebSearch (`allowed_domains`) when they cover the need. If nothing on the list has it, record "not found" rather than fetching another site.
+
 ## Workflow Steps
 
 ### Step 1 — Fetch Market Data

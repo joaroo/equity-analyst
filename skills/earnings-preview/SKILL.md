@@ -22,6 +22,8 @@ Symbols for `quotes` and `history` use exchange suffixes: Stockholm `VOLV-B.ST`,
 
 All consensus estimates and options pricing must be searched, not assumed — they are search-derived, so cite the source. Never use estimates from training data. Price reactions come from `history`, not from articles.
 
+**Research sources.** WebFetch only pages on the domains in `research_sources.fetch_allowed` (`investor-profile.json`) — each new domain triggers an approval prompt that would stall a scheduled run. Prefer those domains in WebSearch (`allowed_domains`) when they cover the need. If nothing on the list has it, record "not found" rather than fetching another site.
+
 ## Workflow Steps
 
 ### Step 1 — Earnings Date Confirmation

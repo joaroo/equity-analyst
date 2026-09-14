@@ -57,6 +57,8 @@ MCP tool names carry a client-specific prefix (Claude Code: `mcp__<server>__<too
 
 **Numbers from tools, not prose.** Any figure `quotes`, `history`, `indicators`, `fx` or `rates` can produce must come from those tools, carrying its timestamp and currency. A price read off a search result is stale by an unknown amount and may be the wrong listing or currency. Moving averages, RSI and MACD come from `indicators` — never searched and never calculated by hand.
 
+**Fetch only approved domains.** WebFetch is limited to `research_sources.fetch_allowed` in `investor-profile.json` (stockanalysis.com, investing.com, finance.yahoo.com, placera.se, di.se, mfn.se, scb.se and the three central banks). Each domain needs a one-time approval in Cowork; an unlisted domain would stall a scheduled run. Record "not found" instead.
+
 **Label search-derived data.** Fundamentals and narrative from `research` must cite their source. If a structured tool fails, say so plainly and mark any fallback figure as unverified.
 
 **Portfolio connector is read-only by rule.** Broker MCPs may grant write tools (orders, trade tickets, alerts) with the same credential. Only the orchestrator reads `portfolio`, and only with read tools. If `portfolio` is unbound or fails, use the portfolio the user provides and say so.

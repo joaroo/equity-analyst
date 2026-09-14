@@ -22,6 +22,8 @@ Symbols for `quotes` and `history` use exchange suffixes: Stockholm `VOLV-B.ST`,
 
 Do not use training-data financials — revenue, earnings, and growth rates change quarterly and must be searched. Financials from `research` are search-derived: cite the source and period.
 
+**Research sources.** WebFetch only pages on the domains in `research_sources.fetch_allowed` (`investor-profile.json`) — each new domain triggers an approval prompt that would stall a scheduled run. Prefer those domains in WebSearch (`allowed_domains`) when they cover the need. If nothing on the list has it, record "not found" rather than fetching another site.
+
 ## Workflow Steps
 
 ### Step 1 — Pull Company Financials
