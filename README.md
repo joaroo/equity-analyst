@@ -76,7 +76,7 @@ portfolio connector (broker) or pasted input
 | Subagent | Access | Connector |
 |----------|--------|-----------|
 | orchestrator | read-only (read tools only) | `portfolio` |
-| `market-snapshot` | read-only | `quotes`, `indicators`, `history`, `research` |
+| `market-snapshot` | read-only | `quotes`, `indicators`, `history`, `rates` |
 | `catalyst-scanner` | read-only | `research` |
 | `fundamental-analyst` | read-only | `quotes`, `indicators`, `fx`, `research` |
 | `technical-analyst` | read-only | `quotes`, `indicators`, `history`, `research` |
@@ -164,6 +164,7 @@ Defined in `connectors.json`. Skills reference aliases only — real tool names 
 | `history` | Self-hosted market-data MCP | Raw OHLCV bars → support/resistance, returns | [connectors/market-data/](connectors/market-data/CONNECTOR.md) |
 | `indicators` | Self-hosted market-data MCP | Computed MAs, RSI, MACD, ranges, volume ratios | [connectors/market-data/](connectors/market-data/CONNECTOR.md) |
 | `fx` | Self-hosted market-data MCP | ECB exchange rates | [connectors/market-data/](connectors/market-data/CONNECTOR.md) |
+| `rates` | Self-hosted market-data MCP | Riksbank/ECB/Fed policy rates and stance from official data | [connectors/market-data/](connectors/market-data/CONNECTOR.md) |
 | `research` | Built-in WebSearch / WebFetch | Fundamentals, ratings, earnings, guidance, Fed, catalysts | — |
 | `notifications` | Optional, configurable | Progress updates, report delivery | [connectors/slack/](connectors/slack/CONNECTOR.md) |
 
@@ -194,7 +195,7 @@ Prices, targets and stops use each instrument's native trading currency (SEK, NO
 ## Project Structure
 
 ```
-.claude-plugin/plugin.json               # Plugin manifest (v3.0.4)
+.claude-plugin/plugin.json               # Plugin manifest (v3.0.5)
 connectors.json                          # Connector alias registry
 investor-profile.json                    # Base currency, account/tax rules, markets, sizing
 .mcp.json.example                        # MCP server wiring: market-data + broker + Slack

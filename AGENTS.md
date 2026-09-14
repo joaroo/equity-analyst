@@ -49,12 +49,13 @@ All data access goes through connector aliases. Never reference raw tool names i
 | `history` | `market_history` on the market-data MCP | Raw OHLCV bars → support/resistance, drawdown, event-day moves, period returns |
 | `indicators` | `market_indicators` on the market-data MCP | Computed SMA 20/50/200, RSI(14), MACD(12,26,9), 52w/20d ranges, volume ratios |
 | `fx` | `fx_rate` on the market-data MCP | Every currency conversion (latest or dated) |
+| `rates` | `central_bank_rates` on the market-data MCP | Riksbank/ECB/Fed policy rates, last changes and stance from official data |
 | `research` | Built-in `WebSearch`, then `WebFetch` | Fundamentals, analyst ratings/targets, earnings dates/estimates/results, guidance, Fed stance, catalysts, mutual fund NAVs |
 | `notifications` | `${NOTIFICATION_MCP_TOOL}` (optional) | Progress updates and report delivery — orchestrator only, skipped when not configured |
 
 MCP tool names carry a client-specific prefix (Claude Code: `mcp__<server>__<tool>`); resolve aliases by the tool name.
 
-**Numbers from tools, not prose.** Any figure `quotes`, `history`, `indicators` or `fx` can produce must come from those tools, carrying its timestamp and currency. A price read off a search result is stale by an unknown amount and may be the wrong listing or currency. Moving averages, RSI and MACD come from `indicators` — never searched and never calculated by hand.
+**Numbers from tools, not prose.** Any figure `quotes`, `history`, `indicators`, `fx` or `rates` can produce must come from those tools, carrying its timestamp and currency. A price read off a search result is stale by an unknown amount and may be the wrong listing or currency. Moving averages, RSI and MACD come from `indicators` — never searched and never calculated by hand.
 
 **Label search-derived data.** Fundamentals and narrative from `research` must cite their source. If a structured tool fails, say so plainly and mark any fallback figure as unverified.
 
@@ -131,7 +132,7 @@ Phase 4: format-notification (orchestrator, no sub-agent)
 ## Standalone Command Protocols
 
 ### `/snapshot`
-Delegates to the `equity-analyst:market-snapshot` agent (Haiku) and returns its JSON only. Index levels, VIX and sector returns from `quotes`/`indicators`/`history`; central-bank stance only from official statements (at most 8 `research` calls).
+Delegates to the `equity-analyst:market-snapshot` agent (Haiku) and returns its JSON only. Index levels, VIX and sector returns from `quotes`/`indicators`/`history`; central-bank rates and stance from `rates` (at most 2 `research` calls, for forward guidance only).
 
 ### `/earnings-preview TICKER`
 Check that earnings have **not yet been reported** this quarter. If they have, halt: `Earnings already reported — run /earnings-review {TICKER} instead.`  
@@ -200,4 +201,4 @@ Never silently skip a required field. Always state why it is missing.
 3. Create `commands/{name}.md` if a slash command is needed — thin wrapper, connector alias in body, no `tools:` frontmatter
 4. Create `managed-agent-cookbooks/{name}/` with `agent.yaml`, `subagents/analyst.yaml`, `README.md` if managed deployment is needed
 5. Update `README.md` commands table and capabilities section
-6. Skills reference connector aliases only (`portfolio`, `quotes`, `history`, `indicators`, `fx`, `research`, `notifications`) — never raw MCP tool names
+6. Skills reference connector aliases only (`portfolio`, `quotes`, `history`, `indicators`, `fx`, `rates`, `research`, `notifications`) — never raw MCP tool names

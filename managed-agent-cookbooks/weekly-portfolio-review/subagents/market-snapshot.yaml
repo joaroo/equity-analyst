@@ -13,11 +13,12 @@ permissions:
 tools:
   - mcp__market-data__market_quote
   - mcp__market-data__market_indicators
+  - mcp__market-data__central_bank_rates
   - mcp__market-data__market_history
   - WebSearch
   - WebFetch
 
-data_connectors: [quotes, indicators, history, research]
+data_connectors: [quotes, indicators, history, rates, research]
 
 skill: ../../skills/market-snapshot/SKILL.md
 output_format: json-only
