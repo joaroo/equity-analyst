@@ -10,3 +10,5 @@ Skill reference: `skills/index-fund-advisory/SKILL.md`
 Read holdings from the `portfolio` connector if it is bound; otherwise use the funds and allocations the user provides. Use `quotes`/`history` for exchange-traded fund and benchmark prices and performance, `fx` for conversions, and `research` (web search) for mutual fund NAVs, expense ratios, fund news and outlook (see `connectors.json`).
 
 Follow the workflow steps and output schema defined in `skills/index-fund-advisory/SKILL.md` exactly.
+
+**Paper mode:** if the prompt says paper mode, load the `equity-analyst:paper-trading` skill first. Read fund holdings (units, cost basis, last NAV) from `paper-portfolio.json` in the working folder instead of the broker or the prompt, derive allocation percentages from current values, and after the report execute its rebalancing recommendations against the ledger (paper-trading Steps 2–3, `run` = `index-funds`). Recommend specific target percentages so they can be executed. Append the Paper Ledger section to the report.

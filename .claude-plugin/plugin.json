@@ -1,7 +1,7 @@
 {
   "name": "equity-analyst",
   "description": "AI-powered stock analysis: systematic fundamental analyst, independent technical analyst, portfolio manager, and index fund advisor. Structured with skill files, governed data connectors, and managed agent templates.",
-  "version": "3.0.7",
+  "version": "3.1.0",
   "author": {
     "name": "joaroo"
   },
@@ -23,7 +23,8 @@
     "./skills/earnings-preview",
     "./skills/earnings-review",
     "./skills/catalyst-calendar",
-    "./skills/valuation"
+    "./skills/valuation",
+    "./skills/paper-trading"
   ],
   "repository": "https://github.com/joaroo/equity-analyst",
   "license": "MIT"

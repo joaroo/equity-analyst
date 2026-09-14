@@ -182,6 +182,10 @@ See [`.mcp.json.example`](.mcp.json.example) for concrete wiring.
 
 ---
 
+## Paper Mode
+
+Run `/analyze` or `/index-funds` with "paper mode" in the prompt inside a Cowork project whose folder holds `paper-portfolio.json`, `paper-trades.csv` and `paper-performance.csv`. The run reads the paper portfolio instead of a broker, simulates the committee's decisions at live prices with Montrose fees, and logs trades and performance against OMX Stockholm 30 and MSCI World. See [`skills/paper-trading/SKILL.md`](skills/paper-trading/SKILL.md). Ledger files are git-ignored — keep them out of the repo.
+
 ## Currency
 
 Prices, targets and stops use each instrument's native trading currency (SEK, NOK, DKK, EUR, GBP, USD). Cash, position sizes, portfolio value and P&L use the base currency set in `investor-profile.json` (SEK by default), with foreign returns split into local performance and currency effect.
@@ -195,7 +199,7 @@ Prices, targets and stops use each instrument's native trading currency (SEK, NO
 ## Project Structure
 
 ```
-.claude-plugin/plugin.json               # Plugin manifest (v3.0.7)
+.claude-plugin/plugin.json               # Plugin manifest (v3.1.0)
 connectors.json                          # Connector alias registry
 investor-profile.json                    # Base currency, account/tax rules, markets, sizing
 .mcp.json.example                        # MCP server wiring: market-data + broker + Slack

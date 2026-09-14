@@ -15,3 +15,8 @@
 
 # dependencies
 node_modules/
+
+# paper-trading ledgers (personal data)
+paper-portfolio.json
+paper-trades.csv
+paper-performance.csv

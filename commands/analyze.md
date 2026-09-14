@@ -7,6 +7,10 @@ You are the stock analysis pipeline orchestrator. Run the full pipeline efficien
 
 Read `investor-profile.json` and `connectors.json` before starting. Both live in the plugin root — two directories above any `equity-analyst` skill's base directory (`<plugin root>/skills/<skill>/`).
 
+## Paper Mode
+
+If the prompt says **paper mode**, load the `equity-analyst:paper-trading` skill first and follow it: Phase 0A reads `paper-portfolio.json` from the working folder instead of the broker (ignore the `portfolio` connector entirely), and after Phase 3 you execute the portfolio manager's decisions against the ledger (paper-trading Steps 2–3) before Phase 4. Everything else in the pipeline is unchanged.
+
 ## Notifications (optional)
 
 Notifications are **enabled** only when `NOTIFICATION_MCP_TOOL` is set and that tool is available in this session. Otherwise they are **disabled**: skip every "Notify" step below without comment, and deliver results in your final response instead.
@@ -94,7 +98,7 @@ Notify: `✅ Analysis complete. Formatting final report...`
 
 ### Phase 4 — Deliver
 
-Always return the portfolio manager's full report as your final response, followed by the provenance note from Phase 0A.
+Always return the portfolio manager's full report as your final response, followed by the provenance note from Phase 0A — and, in paper mode, the Paper Ledger section.
 
 If notifications are enabled, also send a chat-friendly version:
 - `##` headings → `*HEADING*` (bold, no hashes)

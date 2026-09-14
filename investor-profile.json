@@ -160,5 +160,31 @@
   "valuation_defaults": {
     "discount_rate": "Local 10-year government bond yield for the company's reporting currency (look it up and cite it) + about 5 percentage points equity risk premium, adjusted for size and business risk. State each input.",
     "terminal_growth": "Do not exceed the long-run inflation target of the reporting currency area (2% for SEK, EUR and USD); default 2%."
+  },
+  "paper_trading": {
+    "_about": "Used only in paper mode (skills/paper-trading). Fees model Montrose Access as quoted in the broker evaluation; verify before relying on them.",
+    "ledger_file": "paper-portfolio.json",
+    "fees": {
+      "nordic_markets": {
+        "suffixes": [
+          ".ST",
+          ".OL",
+          ".CO",
+          ".HE"
+        ],
+        "rate_pct": 0.15,
+        "min_sek": 1,
+        "max_sek": 99
+      },
+      "other_markets": {
+        "rate_pct": 0.15,
+        "min_sek": 1,
+        "max_sek": null
+      },
+      "fx_fee_pct": 0.12,
+      "funds": {
+        "rate_pct": 0.0
+      }
+    }
   }
 }
