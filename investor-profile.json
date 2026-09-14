@@ -104,7 +104,8 @@
       "currency": "SEK",
       "priority": 1,
       "official_domain": "riksbank.se",
-      "decisions_page": "https://www.riksbank.se/en-gb/press-and-published/notices-and-press-releases/"
+      "decisions_page": "https://www.riksbank.se/en-gb/monetary-policy/monetary-policy-report/monetary-policy-decision-documents/",
+      "decisions_note": "Decisions are published as PDF documents, newest first (e.g. monetary-policy-decision-august-2026.pdf). The press-release index page is too large to parse — use this page."
     },
     {
       "name": "European Central Bank",
