@@ -20,9 +20,10 @@ Read `investor-profile.json` first. It defines the home market, the regional and
 1. `quotes` connector — index and volatility levels in one call: home index (`^OMX`), regional index (`^STOXX`), global index (`^GSPC`), `^VIX`
 2. `indicators` connector — 50/200-day moving-average distance for the home, regional and global indices in one call
 3. `history` connector — 5-day returns for the European sector proxies (`range: "5d"`, `interval: "1d"`)
-4. `research` connector (WebSearch/WebFetch) — central-bank stance only
+4. `rates` connector — policy rates, last changes and computed stance for the Riksbank, ECB and Fed from official data feeds, in one call
+5. `research` connector (WebSearch/WebFetch) — optional forward guidance only
 
-**Research budget: 8 calls** — per central bank, one WebSearch restricted to its official domain plus one WebFetch of the official decision statement (three banks by default), plus up to 2 extra fetches in total for the decisions-page fallback. A research call is one WebSearch or one WebFetch. Each returns 10–25k characters, so research calls dominate token use. Count them as you go. When the budget is reached, stop researching and list in the output what went without research — never exceed it silently. Structured calls (`quotes`, `indicators`, `history`) are cheap: batch symbols.
+**Research budget: 2 calls, usually 0.** Rates and stance come from `rates`. Spend research calls only to read the official statement (`official_domain` / `decisions_page` in `investor-profile.json`) of a bank whose rate changed within the last 45 days, to add its forward guidance. A research call is one WebSearch or one WebFetch. Each returns 10–25k characters, so research calls dominate token use. Count them as you go. When the budget is reached, stop researching and list in the output what went without research — never exceed it silently. Structured calls (`quotes`, `indicators`, `history`) are cheap: batch symbols.
 
 ## Workflow Steps
 
@@ -32,11 +33,7 @@ Collect in parallel where possible:
 
 1. Index levels (`quotes`): OMX Stockholm 30 `^OMX`, STOXX Europe 600 `^STOXX`, S&P 500 `^GSPC`, and `^VIX`
 2. Trend (`indicators`): price vs 50-day and 200-day MA for `^OMX`, `^STOXX`, `^GSPC`
-3. Central banks (`research`), **official sources only** — domains and decision pages are in `investor-profile.json` (`riksbank.se`, `ecb.europa.eu`, `federalreserve.gov`):
-   - WebSearch with `allowed_domains` set to the bank's official domain: `[bank] monetary policy decision [month year]`
-   - WebFetch the most recent decision statement or press release it returns. If the search does not return an actual statement, fetch the bank's `decisions_page` from `investor-profile.json` and then the newest decision document it links (the Riksbank publishes decisions as PDFs, newest first — see `decisions_note`). Never report a listing or index page as the `source`
-   - Take the rate level, the direction of the last change, the decision date and the forward guidance **from that statement only**. Do not use news articles, previews or market-pricing commentary for the stance; you may mention market expectations separately, labelled as such.
-   - If the official statement cannot be retrieved, set that bank's stance to `"unverified"` and do not count it as a signal
+3. Central banks (`rates`, one call): copy each bank's policy rate, stance, last change and effective date **exactly as the tool returns them** — do not reinterpret the stance or re-derive dates. Optionally add forward guidance from an official statement (research budget above). Never take rates, moves or stance from news. If `rates` fails for a bank, set its stance to `"unverified"` and do not count it.
 4. European sector leadership (`history`, 5-day return) for the profile's sector proxies:
    - Cyclical: Technology `EXV3.DE`, Industrial Goods & Services `EXH4.DE`, Banks `EXV1.DE`, Basic Resources `EXV6.DE`
    - Defensive: Health Care `EXV4.DE`, Utilities `EXH9.DE`, Food & Beverage `EXH3.DE`
@@ -53,7 +50,9 @@ Apply the signal matrix:
 | Global (S&P 500) vs 50MA | Above >3% | Within ±3% | Below >3% |
 | VIX | <15 | 15–20 | >20 |
 | European sector leadership | Cyclicals leading | Mixed | Defensives leading |
-| Central banks (weighted: Riksbank > ECB > Fed) | Net easing | On hold or mixed | Net tightening |
+| Central banks — `net` from the weighted score below | Easing | On hold | Tightening |
+
+**Central-bank `net`:** score each bank Tightening = +1, On hold = 0, Easing = −1 (unverified = 0), weight Riksbank ×3, ECB ×2, Fed ×1, and sum. Sum ≥ +2 → Tightening; sum ≤ −2 → Easing; otherwise On hold.
 
 Classify **RISK-ON** if 4+ of the 6 signals are bullish and at most 1 is bearish; **RISK-OFF** if 4+ are bearish and at most 1 is bullish; **TRANSITIONAL** otherwise.
 
@@ -92,10 +91,11 @@ Return only the JSON schema below. No preamble, no prose. Report index levels ex
     "signal": "Greed"
   },
   "central_banks": {
-    "riksbank": { "stance": "Easing|On hold|Tightening|unverified", "decision_date": "YYYY-MM-DD", "last_decision": "...", "source": "official URL" },
-    "ecb": { "stance": "Easing|On hold|Tightening|unverified", "decision_date": "YYYY-MM-DD", "last_decision": "...", "source": "official URL" },
-    "fed": { "stance": "Easing|On hold|Tightening|unverified", "decision_date": "YYYY-MM-DD", "last_decision": "...", "source": "official URL" },
-    "net": "Easing|On hold|Tightening"
+    "riksbank": { "stance": "Easing|On hold|Tightening|unverified", "policy_rate": "1.75%", "last_change": "cut 25 bp, effective YYYY-MM-DD", "guidance": null },
+    "ecb": { "stance": "Easing|On hold|Tightening|unverified", "policy_rate": "deposit facility 0.00%", "last_change": "hike 25 bp, effective YYYY-MM-DD", "guidance": null },
+    "fed": { "stance": "Easing|On hold|Tightening|unverified", "policy_rate": "0.00%–0.00%", "last_change": "...", "guidance": null },
+    "net": "Easing|On hold|Tightening",
+    "source": "central_bank_rates (Riksbank SWEA, ECB Data Portal, NY Fed)"
   },
   "sectors_5d_europe": {
     "leading": ["Technology +X%", "Banks +X%"],
@@ -111,8 +111,8 @@ Return only the JSON schema below. No preamble, no prose. Report index levels ex
 - Do not emit prose — JSON output only
 - Do not take index levels, moving averages, VIX or sector returns from search results — use `quotes`/`indicators`/`history`
 - Do not classify the regime from US signals alone — the home and European signals are required
-- Do not exceed 8 research calls
-- Do not take a central bank's decision from news, previews or aggregator sites — only from its official statement
+- Do not exceed 2 research calls
+- Do not take central-bank rates, moves or stance from news or search results — use `rates`
 - Do not classify regime with fewer than 5 of the 6 signals confirmed
 - Do not cache this output across sessions — always fetch fresh
 
@@ -121,7 +121,7 @@ Return only the JSON schema below. No preamble, no prose. Report index levels ex
 - [ ] `fetched_at` is today's date
 - [ ] At least 5 of 6 signals present before classifying regime
 - [ ] Home, European and global index trend all taken from `indicators`
-- [ ] Each central-bank stance comes from an official statement, with `decision_date` and `source` filled (or `unverified`); `net` reflects the Riksbank > ECB > Fed weighting
+- [ ] Central-bank rates, stances and last changes copied from `rates`; `net` computed with the weighted score (Riksbank ×3, ECB ×2, Fed ×1)
 - [ ] `sectors_5d_europe` contains at least 2 leading and 2 lagging entries
 - [ ] `divergence` filled when home and global indices disagree
 - [ ] JSON is valid with no trailing prose

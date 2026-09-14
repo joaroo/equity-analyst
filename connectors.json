@@ -48,6 +48,12 @@
       "purpose": "ECB reference rates for every currency conversion, latest or on a given date.",
       "docs": "connectors/market-data/CONNECTOR.md"
     },
+    "rates": {
+      "server": "market-data",
+      "tool": "central_bank_rates",
+      "purpose": "Riksbank, ECB and Fed policy rates, last changes (effective dates) and a data-derived stance from official feeds: Riksbank SWEA API, ECB Data Portal, NY Fed Markets API.",
+      "docs": "connectors/market-data/CONNECTOR.md"
+    },
     "research": {
       "primary": "WebSearch",
       "follow_up": "WebFetch",
@@ -70,7 +76,7 @@
   "tool_name_resolution": "MCP tools appear with a client-specific prefix (Claude Code: mcp__<server>__<tool>; claude.ai/Cowork connectors use the connector name). Resolve an alias by its tool name suffix.",
   "example_config": ".mcp.json.example",
   "rules": [
-    "Any figure quotes, history, indicators or fx can produce must come from those tools — never from search results or hand calculation",
+    "Any figure quotes, history, indicators, fx or rates can produce must come from those tools — never from search results or hand calculation",
     "Use research (WebSearch/WebFetch) only for data no structured tool provides, and label it search-derived",
     "Never call write tools on the portfolio connector (orders, trade tickets, alerts, watchlist edits)",
     "Do not hardcode model names in skills or commands — use connector aliases only",

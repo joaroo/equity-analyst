@@ -20,6 +20,7 @@
 import { performance } from 'node:perf_hooks';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { computeIndicators, type Bar } from './indicators.ts';
+import { describeChange, ecbRates, fedRates, HOLD_AFTER_DAYS, riksbankRates, stanceOf } from './centralbanks.ts';
 import { z } from 'zod';
 
 const YAHOO_BASE = 'https://query1.finance.yahoo.com/v8/finance/chart';
@@ -148,7 +149,7 @@ async function readCapped(res: Response, signal: AbortSignal): Promise<string> {
   return Buffer.concat(chunks).toString('utf8');
 }
 
-async function getJson(url: string, signal: AbortSignal): Promise<unknown> {
+async function getText(url: string, signal: AbortSignal): Promise<string> {
   // Slot first, token second: a queued call must not spend budget it may never use.
   await acquireUpstreamSlot(signal);
   try {
@@ -163,10 +164,14 @@ async function getJson(url: string, signal: AbortSignal): Promise<unknown> {
       await res.body?.cancel();
       throw new Error(`HTTP ${res.status} ${res.statusText}`);
     }
-    return JSON.parse(await readCapped(res, signal));
+    return await readCapped(res, signal);
   } finally {
     releaseUpstreamSlot();
   }
+}
+
+async function getJson(url: string, signal: AbortSignal): Promise<unknown> {
+  return JSON.parse(await getText(url, signal));
 }
 
 /** Cancelled when the client disconnects (SDK signal) or the tool deadline passes. */
@@ -446,6 +451,44 @@ export function createServer(): McpServer {
       const text = results.map((r) => r.text).join('\n\n');
       if (succeeded === 0) return fail(text);
       return ok(succeeded < symbols.length ? `${text}\n\n${symbols.length - succeeded} of ${symbols.length} symbols failed.` : text);
+    },
+  );
+
+  server.registerTool(
+    'central_bank_rates',
+    {
+      description: `Current policy rates and the last rate changes for Sveriges Riksbank, the ECB and the US Federal Reserve, from official data feeds (Riksbank SWEA API, ECB Data Portal, New York Fed). Also returns a stance computed from the data: a change within ${HOLD_AFTER_DAYS} days sets Tightening or Easing, otherwise On hold. Dates are effective dates, not decision dates. Use this instead of news searches for rate levels, recent moves and stance.`,
+      inputSchema: {},
+      annotations: READ_ONLY,
+    },
+    async (_args, extra) => {
+      log('central bank rates');
+      const signal = toolSignal(extra);
+      const fetchText = (url: string) => getText(url, signal);
+      const today = new Date();
+      const results = await Promise.allSettled([riksbankRates(fetchText, today), ecbRates(fetchText), fedRates(fetchText, today)]);
+      const names = ['Sveriges Riksbank', 'European Central Bank', 'US Federal Reserve'];
+
+      let succeeded = 0;
+      const sections = results.map((r, i) => {
+        if (r.status === 'rejected') {
+          return `${names[i]}: FAILED — ${errorText(r.reason)}`;
+        }
+        succeeded += 1;
+        const b = r.value;
+        const { stance, reason } = stanceOf(b, today);
+        return [
+          `${b.bank} — ${b.rateLabel} ${b.currentText} (as of ${b.asOf})${b.extra ? `; ${b.extra}` : ''}`,
+          `  Stance: ${stance} (${reason})`,
+          `  Last change: ${describeChange(b.lastChange, today)}`,
+          `  Previous change: ${describeChange(b.previousChange, today)}`,
+          `  Source: ${b.source}`,
+        ].join('\n');
+      });
+
+      log(`central bank rates done: ${succeeded}/3 ok`);
+      const text = `${sections.join('\n\n')}\n\nStance rule: last change within ${HOLD_AFTER_DAYS} days → Tightening/Easing; otherwise On hold. Forward guidance is not included — read the official statement if needed.`;
+      return succeeded === 0 ? fail(text) : ok(text);
     },
   );
 

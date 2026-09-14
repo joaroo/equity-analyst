@@ -9,6 +9,7 @@ numbers instead of scraped ones:
 | `market_history` | Yahoo Finance chart API | Raw OHLCV bars (support/resistance, drawdown, event-day moves, period return) |
 | `market_indicators` | Computed from Yahoo daily bars | SMA 20/50/200, RSI(14), MACD(12,26,9), 52w/20d ranges, volume ratios — up to 10 symbols |
 | `fx_rate` | Frankfurter (ECB) | Currency conversion, latest or point-in-time |
+| `central_bank_rates` | Riksbank SWEA API, ECB Data Portal, NY Fed Markets API | Policy rates, last changes and data-derived stance for the Riksbank, ECB and Fed |
 
 No fundamentals: Yahoo's `quoteSummary` needs a cookie/crumb handshake and is too
 fragile. Fundamentals and narrative come from web search.
