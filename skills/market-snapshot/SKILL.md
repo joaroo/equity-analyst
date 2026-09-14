@@ -22,7 +22,7 @@ Read `investor-profile.json` first. It defines the home market, the regional and
 3. `history` connector — 5-day returns for the European sector proxies (`range: "5d"`, `interval: "1d"`)
 4. `research` connector (WebSearch/WebFetch) — central-bank stance only
 
-**Research budget: 6 calls** — per central bank, one WebSearch restricted to its official domain plus one WebFetch of the official decision statement (three banks by default). A research call is one WebSearch or one WebFetch. Each returns 10–25k characters, so research calls dominate token use. Count them as you go. When the budget is reached, stop researching and list in the output what went without research — never exceed it silently. Structured calls (`quotes`, `indicators`, `history`) are cheap: batch symbols.
+**Research budget: 8 calls** — per central bank, one WebSearch restricted to its official domain plus one WebFetch of the official decision statement (three banks by default), plus up to 2 extra fetches in total for the decisions-page fallback. A research call is one WebSearch or one WebFetch. Each returns 10–25k characters, so research calls dominate token use. Count them as you go. When the budget is reached, stop researching and list in the output what went without research — never exceed it silently. Structured calls (`quotes`, `indicators`, `history`) are cheap: batch symbols.
 
 ## Workflow Steps
 
@@ -34,7 +34,7 @@ Collect in parallel where possible:
 2. Trend (`indicators`): price vs 50-day and 200-day MA for `^OMX`, `^STOXX`, `^GSPC`
 3. Central banks (`research`), **official sources only** — domains and decision pages are in `investor-profile.json` (`riksbank.se`, `ecb.europa.eu`, `federalreserve.gov`):
    - WebSearch with `allowed_domains` set to the bank's official domain: `[bank] monetary policy decision [month year]`
-   - WebFetch the most recent decision statement or press release it returns (if the search finds nothing, fetch the bank's `decisions_page` instead)
+   - WebFetch the most recent decision statement or press release it returns. If the search does not return an actual statement, fetch the bank's `decisions_page` from `investor-profile.json` and then the newest decision document it links (the Riksbank publishes decisions as PDFs, newest first — see `decisions_note`). Never report a listing or index page as the `source`
    - Take the rate level, the direction of the last change, the decision date and the forward guidance **from that statement only**. Do not use news articles, previews or market-pricing commentary for the stance; you may mention market expectations separately, labelled as such.
    - If the official statement cannot be retrieved, set that bank's stance to `"unverified"` and do not count it as a signal
 4. European sector leadership (`history`, 5-day return) for the profile's sector proxies:
@@ -61,7 +61,7 @@ When the home index and the global index point in opposite directions, set `dive
 
 ### Step 3 — Emit Output
 
-Return only the JSON schema below. No preamble, no prose.
+Return only the JSON schema below. No preamble, no prose. Report index levels exactly as returned by `quotes` (two decimals), not rounded.
 
 ## Output Schema
 
@@ -71,7 +71,7 @@ Return only the JSON schema below. No preamble, no prose.
   "regime": "RISK-ON",
   "home_index": {
     "name": "OMX Stockholm 30",
-    "level": 0,
+    "level": 0.0,
     "vs_50ma_pct": 0.0,
     "vs_200ma_pct": 0.0
   },
@@ -111,7 +111,7 @@ Return only the JSON schema below. No preamble, no prose.
 - Do not emit prose — JSON output only
 - Do not take index levels, moving averages, VIX or sector returns from search results — use `quotes`/`indicators`/`history`
 - Do not classify the regime from US signals alone — the home and European signals are required
-- Do not exceed 6 research calls
+- Do not exceed 8 research calls
 - Do not take a central bank's decision from news, previews or aggregator sites — only from its official statement
 - Do not classify regime with fewer than 5 of the 6 signals confirmed
 - Do not cache this output across sessions — always fetch fresh
