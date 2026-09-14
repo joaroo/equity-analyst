@@ -77,7 +77,7 @@ portfolio connector (broker) or pasted input
 |----------|--------|-----------|
 | orchestrator | read-only (read tools only) | `portfolio` |
 | `market-snapshot` | read-only | `quotes`, `indicators`, `history`, `rates` |
-| `catalyst-scanner` | read-only | `research` |
+| `catalyst-scanner` | read-only | `rates`, `research` |
 | `fundamental-analyst` | read-only | `quotes`, `indicators`, `fx`, `research` |
 | `technical-analyst` | read-only | `quotes`, `indicators`, `history`, `research` |
 | `portfolio-manager` | read-only | `quotes`, `fx` |
@@ -195,7 +195,7 @@ Prices, targets and stops use each instrument's native trading currency (SEK, NO
 ## Project Structure
 
 ```
-.claude-plugin/plugin.json               # Plugin manifest (v3.0.6)
+.claude-plugin/plugin.json               # Plugin manifest (v3.0.7)
 connectors.json                          # Connector alias registry
 investor-profile.json                    # Base currency, account/tax rules, markets, sizing
 .mcp.json.example                        # MCP server wiring: market-data + broker + Slack

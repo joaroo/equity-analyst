@@ -35,7 +35,7 @@ Collect in parallel where possible:
 
 1. Index levels (`quotes`): OMX Stockholm 30 `^OMX`, STOXX Europe 600 `^STOXX`, S&P 500 `^GSPC`, and `^VIX`
 2. Trend (`indicators`): price vs 50-day and 200-day MA for `^OMX`, `^STOXX`, `^GSPC`
-3. Central banks (`rates`, one call): copy each bank's policy rate, stance, last change and effective date **exactly as the tool returns them** — do not reinterpret the stance or re-derive dates. Optionally add forward guidance from an official statement (research budget above). Never take rates, moves or stance from news. If `rates` fails for a bank, set its stance to `"unverified"` and do not count it.
+3. Central banks (`rates`, one call): copy each bank's policy rate, stance, last change, effective date and next policy decision date **exactly as the tool returns them** — do not reinterpret the stance or re-derive dates. Optionally add forward guidance from an official statement (research budget above). Never take rates, moves or stance from news. If `rates` fails for a bank, set its stance to `"unverified"` and do not count it.
 4. European sector leadership (`history`, 5-day return) for the profile's sector proxies:
    - Cyclical: Technology `EXV3.DE`, Industrial Goods & Services `EXH4.DE`, Banks `EXV1.DE`, Basic Resources `EXV6.DE`
    - Defensive: Health Care `EXV4.DE`, Utilities `EXH9.DE`, Food & Beverage `EXH3.DE`
@@ -93,9 +93,9 @@ Return only the JSON schema below. No preamble, no prose. Report index levels ex
     "signal": "Greed"
   },
   "central_banks": {
-    "riksbank": { "stance": "Easing|On hold|Tightening|unverified", "policy_rate": "1.75%", "last_change": "cut 25 bp, effective YYYY-MM-DD", "guidance": null },
-    "ecb": { "stance": "Easing|On hold|Tightening|unverified", "policy_rate": "deposit facility 0.00%", "last_change": "hike 25 bp, effective YYYY-MM-DD", "guidance": null },
-    "fed": { "stance": "Easing|On hold|Tightening|unverified", "policy_rate": "0.00%–0.00%", "last_change": "...", "guidance": null },
+    "riksbank": { "stance": "Easing|On hold|Tightening|unverified", "policy_rate": "1.75%", "last_change": "cut 25 bp, effective YYYY-MM-DD", "next_decision": "YYYY-MM-DD", "guidance": null },
+    "ecb": { "stance": "Easing|On hold|Tightening|unverified", "policy_rate": "deposit facility 0.00%", "last_change": "hike 25 bp, effective YYYY-MM-DD", "next_decision": "YYYY-MM-DD", "guidance": null },
+    "fed": { "stance": "Easing|On hold|Tightening|unverified", "policy_rate": "0.00%–0.00%", "last_change": "...", "next_decision": "YYYY-MM-DD", "guidance": null },
     "net": "Easing|On hold|Tightening",
     "source": "central_bank_rates (Riksbank SWEA, ECB Data Portal, NY Fed)"
   },

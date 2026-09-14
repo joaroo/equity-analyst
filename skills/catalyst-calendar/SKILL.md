@@ -14,14 +14,15 @@ description: Four-week forward scan of holdings and watchlist for binary and dir
 
 ## Data Source Priority
 
-1. `research` connector (WebSearch, then WebFetch on the best URL) — every event date
-2. No fallback — all event dates must be confirmed via live search
+1. `rates` connector — next Riksbank, ECB and Fed policy decision dates from the banks' official calendars (one call)
+2. `research` connector (WebSearch, then WebFetch on the best URL) — company event dates and non-central-bank macro releases
+3. No fallback — every other event date must be confirmed via live search
 
 One ticker per search. `research` ranks pages by how well they match a single subject, so a multi-ticker query ("interim report dates for VOLV-B ERIC-B INVE-B SAND") returns a roundup article that matches all four weakly instead of the four filings that each confirm a date. Describe the page you want ("Volvo Q3 2026 interim report publication date"), not keywords.
 
 ## Research Budget
 
-**1 call per holding and watchlist ticker (+1 only for a regulatory or thesis-critical catalyst), plus at most 5 for the macro calendar, plus at most 3 WebFetch calls in total** to confirm dates that search highlights leave unclear. A research call is one WebSearch or one WebFetch. Each returns 10–25k characters, so research calls dominate token use. Count them as you go. When the budget is reached, stop researching and list in the output what went without research — never exceed it silently. Unconfirmed dates are recorded as "date unconfirmed".
+**1 call per holding and watchlist ticker (+1 only for a regulatory or thesis-critical catalyst), plus at most 2 for the macro calendar, plus at most 3 WebFetch calls in total** to confirm dates that search highlights leave unclear. A research call is one WebSearch or one WebFetch. Each returns 10–25k characters, so research calls dominate token use. Count them as you go. When the budget is reached, stop researching and list in the output what went without research — never exceed it silently. Unconfirmed dates are recorded as "date unconfirmed".
 
 **Research sources.** WebFetch only pages on the domains in `research_sources.fetch_allowed` (`investor-profile.json`) — each new domain triggers an approval prompt that would stall a scheduled run. Prefer those domains in WebSearch (`allowed_domains`) when they cover the need. If nothing on the list has it, record "not found" rather than fetching another site.
 
@@ -38,14 +39,13 @@ One query per ticker. Add a second query only for a holding with a known regulat
 
 ### Step 2 — Macro Calendar
 
-Search for the next 4 weeks of macro events affecting the portfolio — **at most 5 queries**, home market first (central banks and releases from `investor-profile.json`):
-1. `Riksbank monetary policy meeting calendar [year]` — critical for Swedish banks, real estate and SEK
-2. `ECB monetary policy meeting calendar [year]` — euro-area rates and EUR-denominated holdings
-3. `FOMC meeting calendar [year]` — global risk sentiment and USD holdings
-4. `Statistics Sweden CPI CPIF release calendar [year]` — drives Riksbank expectations
-5. `US economic calendar CPI and jobs report release dates [month year]` — global macro volatility (skip if the portfolio has no USD exposure and the regime is not RISK-OFF)
+**Central-bank decisions: call `rates` once** and take the next Riksbank, ECB and Fed policy decision dates exactly as returned (they come from the official calendars). Do not search for central-bank meeting dates. Include each one that falls within the window: Riksbank for Swedish banks, real estate and SEK; ECB for euro-area rates and EUR holdings; Fed for global risk sentiment and USD holdings. If `rates` reports a calendar as unavailable, record that bank's meeting as "date unconfirmed".
 
-Central-bank calendars cover the whole year — one query each is enough. Reporting-season timing comes from the per-ticker searches in Step 1, not a separate query.
+**Other macro releases — at most 2 queries:**
+1. `Statistics Sweden CPI CPIF release calendar [year]` — drives Riksbank expectations
+2. `US economic calendar CPI and jobs report release dates [month year]` — global macro volatility (skip if the portfolio has no USD exposure and the regime is not RISK-OFF)
+
+Reporting-season timing comes from the per-ticker searches in Step 1, not a separate query.
 
 Include central-bank meetings and major data releases only if they fall within the 4-week window.
 
@@ -151,7 +151,7 @@ Return the structured JSON schema below plus a brief text summary. The JSON is c
 ## Verification Checklist
 
 - [ ] Every HIGH-risk event has a confirmed date from live search
-- [ ] Macro events (Riksbank, ECB, FOMC; Swedish, euro-area and US inflation) checked for the 4-week window
+- [ ] Riksbank, ECB and Fed decision dates taken from `rates`; Swedish and US inflation releases checked for the 4-week window
 - [ ] Risk tiers reflect actual binary outcome potential (not all events are HIGH)
 - [ ] High-risk windows identified when 2+ HIGH events within 5 days
 - [ ] JSON is valid with no trailing prose

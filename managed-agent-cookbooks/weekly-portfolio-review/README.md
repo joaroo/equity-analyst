@@ -56,7 +56,7 @@ Or ask it to read from a file: "Read my portfolio from ~/Finance/holdings.txt"
 |----------|------|-------|------------|
 | orchestrator | ✅ | ❌ (notifications if configured) | portfolio: accounts, holdings, watchlists (read tools only) |
 | market-snapshot | ✅ | ❌ | quotes, indicators, history, web search |
-| catalyst-scanner | ✅ | ❌ | web search |
+| catalyst-scanner | ✅ | ❌ | rates, web search |
 | fundamental-analyst | ✅ | ❌ | quotes, indicators, fx, web search |
 | technical-analyst | ✅ | ❌ | quotes, indicators, history, web search |
 | portfolio-manager | ✅ | ❌ | quotes, fx |

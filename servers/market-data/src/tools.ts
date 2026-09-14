@@ -20,7 +20,7 @@
 import { performance } from 'node:perf_hooks';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { computeIndicators, type Bar } from './indicators.ts';
-import { describeChange, ecbRates, fedRates, HOLD_AFTER_DAYS, riksbankRates, stanceOf } from './centralbanks.ts';
+import { describeChange, ecbRates, fedRates, HOLD_AFTER_DAYS, nextMeeting, riksbankRates, stanceOf } from './centralbanks.ts';
 import { z } from 'zod';
 
 const YAHOO_BASE = 'https://query1.finance.yahoo.com/v8/finance/chart';
@@ -457,7 +457,7 @@ export function createServer(): McpServer {
   server.registerTool(
     'central_bank_rates',
     {
-      description: `Current policy rates and the last rate changes for Sveriges Riksbank, the ECB and the US Federal Reserve, from official data feeds (Riksbank SWEA API, ECB Data Portal, New York Fed). Also returns a stance computed from the data: a change within ${HOLD_AFTER_DAYS} days sets Tightening or Easing, otherwise On hold. Dates are effective dates, not decision dates. Use this instead of news searches for rate levels, recent moves and stance.`,
+      description: `Current policy rates, the last rate changes and the next scheduled policy decision date for Sveriges Riksbank, the ECB and the US Federal Reserve, from official data feeds (Riksbank SWEA API, ECB Data Portal, New York Fed) and the banks' official meeting calendars. Also returns a stance computed from the data: a change within ${HOLD_AFTER_DAYS} days sets Tightening or Easing, otherwise On hold. Dates are effective dates, not decision dates. Use this instead of news searches for rate levels, recent moves and stance.`,
       inputSchema: {},
       annotations: READ_ONLY,
     },
@@ -466,8 +466,17 @@ export function createServer(): McpServer {
       const signal = toolSignal(extra);
       const fetchText = (url: string) => getText(url, signal);
       const today = new Date();
-      const results = await Promise.allSettled([riksbankRates(fetchText, today), ecbRates(fetchText), fedRates(fetchText, today)]);
+      const [results, meetings] = await Promise.all([
+        Promise.allSettled([riksbankRates(fetchText, today), ecbRates(fetchText), fedRates(fetchText, today)]),
+        Promise.allSettled([nextMeeting('riksbank', fetchText, today), nextMeeting('ecb', fetchText, today), nextMeeting('fed', fetchText, today)]),
+      ]);
       const names = ['Sveriges Riksbank', 'European Central Bank', 'US Federal Reserve'];
+      const meetingText = (i: number): string => {
+        const m = meetings[i];
+        if (m.status === 'rejected') return `unavailable — calendar page could not be read (${errorText(m.reason)})`;
+        if (!m.value) return 'none published yet';
+        return `${m.value.date} (${m.value.days === 0 ? 'today' : `in ${m.value.days} days`}) — ${m.value.source}`;
+      };
 
       let succeeded = 0;
       const sections = results.map((r, i) => {
@@ -482,6 +491,7 @@ export function createServer(): McpServer {
           `  Stance: ${stance} (${reason})`,
           `  Last change: ${describeChange(b.lastChange, today)}`,
           `  Previous change: ${describeChange(b.previousChange, today)}`,
+          `  Next policy decision: ${meetingText(i)}`,
           `  Source: ${b.source}`,
         ].join('\n');
       });
