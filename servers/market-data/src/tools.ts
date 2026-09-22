@@ -20,7 +20,8 @@
 import { performance } from 'node:perf_hooks';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { computeIndicators, type Bar } from './indicators.ts';
-import { describeChange, ecbRates, fedRates, HOLD_AFTER_DAYS, nextMeeting, riksbankRates, stanceOf } from './centralbanks.ts';
+import { describeChange, ecbRates, fedRates, HOLD_AFTER_DAYS, nextMeeting, riksbankRates, stanceOf, type BankRates } from './centralbanks.ts';
+import { askJev, classifyRules, compare, jevEnabled, type BankInput, type IndexInput, type RegimeInputs, type SectorInput } from './regime.ts';
 import { z } from 'zod';
 
 const YAHOO_BASE = 'https://query1.finance.yahoo.com/v8/finance/chart';
@@ -244,6 +245,27 @@ function num(value: number | null | undefined): string {
   return String(Number(value.toFixed(places)));
 }
 
+/** Daily bars with complete high/low/close; gaps (holidays, halted days) are skipped. */
+function barsOf(result: ChartResult): Bar[] {
+  const stamps = result.timestamp ?? [];
+  const q = result.indicators?.quote?.[0] ?? {};
+  const bars: Bar[] = [];
+  for (let i = 0; i < stamps.length; i++) {
+    const close = q.close?.[i];
+    const high = q.high?.[i];
+    const low = q.low?.[i];
+    if (close === null || close === undefined || high === null || high === undefined || low === null || low === undefined) continue;
+    bars.push({
+      date: new Date(stamps[i] * 1000).toISOString().slice(0, 10),
+      high,
+      low,
+      close,
+      volume: q.volume?.[i] ?? null,
+    });
+  }
+  return bars;
+}
+
 export function createServer(): McpServer {
   const server = new McpServer({ name: 'market-data', version: '1.0.0' });
 
@@ -385,23 +407,7 @@ export function createServer(): McpServer {
           try {
             const result = await fetchChart(symbol, '2y', '1d', signal);
             const meta = result.meta as ChartMeta;
-            const stamps = result.timestamp ?? [];
-            const q = result.indicators?.quote?.[0] ?? {};
-            const bars: Bar[] = [];
-            for (let i = 0; i < stamps.length; i++) {
-              const close = q.close?.[i];
-              const high = q.high?.[i];
-              const low = q.low?.[i];
-              if (close === null || close === undefined || high === null || high === undefined || low === null || low === undefined) continue;
-              bars.push({
-                date: new Date(stamps[i] * 1000).toISOString().slice(0, 10),
-                high,
-                low,
-                close,
-                volume: q.volume?.[i] ?? null,
-              });
-            }
-            const ind = computeIndicators(bars);
+            const ind = computeIndicators(barsOf(result));
             if (!ind) return { ok: false, text: `${symbol}: FAILED — no daily bars returned` };
 
             const vsMa = (ma: number | null) => (ma === null ? 'n/a (not enough bars)' : `${num(ma)} (price ${pct(ma, ind.close)})`);
@@ -499,6 +505,124 @@ export function createServer(): McpServer {
       log(`central bank rates done: ${succeeded}/3 ok`);
       const text = `${sections.join('\n\n')}\n\nStance rule: last change within ${HOLD_AFTER_DAYS} days → Tightening/Easing; otherwise On hold. Forward guidance is not included — read the official statement if needed.`;
       return succeeded === 0 ? fail(text) : ok(text);
+    },
+  );
+
+  const indexSchema = z.object({ name: z.string().min(1).max(60), symbol: symbolSchema });
+  const sectorMapSchema = z
+    .record(z.string().min(1).max(60), symbolSchema)
+    .refine((m) => Object.keys(m).length <= 6, 'at most 6 sectors per group');
+
+  server.registerTool(
+    'market_regime',
+    {
+      description:
+        'Classify the market regime (RISK-ON / TRANSITIONAL / RISK-OFF) for a Swedish equity portfolio in one call. Fetches index trend, VIX, 5-day European sector returns and Riksbank/ECB/Fed stance itself, applies the market-snapshot six-signal matrix in code, and — when configured — adds a second opinion from the TypeSafe Jev model with a probability per regime and whether it agrees with the rules. Returns JSON. Defaults match investor-profile.json; override symbols only if the profile differs.',
+      inputSchema: {
+        home: indexSchema.default({ name: 'OMX Stockholm 30', symbol: '^OMX' }),
+        europe: indexSchema.default({ name: 'STOXX Europe 600', symbol: '^STOXX' }),
+        global: indexSchema.default({ name: 'S&P 500', symbol: '^GSPC' }),
+        volatility: symbolSchema.default('^VIX'),
+        cyclical: sectorMapSchema.default({
+          Technology: 'EXV3.DE',
+          'Industrial Goods & Services': 'EXH4.DE',
+          Banks: 'EXV1.DE',
+          'Basic Resources': 'EXV6.DE',
+        }),
+        defensive: sectorMapSchema.default({ 'Health Care': 'EXV4.DE', Utilities: 'EXH9.DE', 'Food & Beverage': 'EXH3.DE' }),
+        energy: sectorMapSchema.default({ 'Oil & Gas': 'EXH1.DE' }),
+      },
+      annotations: READ_ONLY,
+    },
+    async ({ home, europe, global, volatility, cyclical, defensive, energy }, extra) => {
+      log(`regime: ${home.symbol} ${europe.symbol} ${global.symbol}${jevEnabled() ? ' + jev' : ''}`);
+      const started = Date.now();
+      const signal = toolSignal(extra);
+      const today = new Date();
+      const fetchText = (url: string) => getText(url, signal);
+
+      const loadIndex = async (idx: { name: string; symbol: string }): Promise<IndexInput> => {
+        try {
+          return { ...idx, indicators: computeIndicators(barsOf(await fetchChart(idx.symbol, '2y', '1d', signal))) };
+        } catch (err) {
+          return { ...idx, indicators: null, error: errorText(err) };
+        }
+      };
+
+      const sectorList = [
+        ...Object.entries(cyclical).map(([name, symbol]) => ({ name, symbol, group: 'cyclical' as const })),
+        ...Object.entries(defensive).map(([name, symbol]) => ({ name, symbol, group: 'defensive' as const })),
+        ...Object.entries(energy).map(([name, symbol]) => ({ name, symbol, group: 'energy' as const })),
+      ];
+      const loadSector = async (s: (typeof sectorList)[number]): Promise<SectorInput> => {
+        try {
+          // Same window as market_history range=5d: first to last close of the bars shown.
+          const closes = barsOf(await fetchChart(s.symbol, '5d', '1d', signal)).map((b) => b.close);
+          const ret = closes.length >= 2 ? Number((((closes[closes.length - 1] - closes[0]) / closes[0]) * 100).toFixed(2)) : null;
+          return { ...s, return5dPct: ret, error: ret === null ? 'fewer than 2 bars' : undefined };
+        } catch (err) {
+          return { ...s, return5dPct: null, error: errorText(err) };
+        }
+      };
+
+      const bank = (r: PromiseSettledResult<BankRates>): BankInput =>
+        r.status === 'rejected'
+          ? { stance: 'unverified', rate: null, lastChange: null }
+          : { stance: stanceOf(r.value, today).stance, rate: `${r.value.rateLabel} ${r.value.currentText}`, lastChange: describeChange(r.value.lastChange, today) };
+
+      const [homeIdx, europeIdx, globalIdx, vix, sectors, banks] = await Promise.all([
+        loadIndex(home),
+        loadIndex(europe),
+        loadIndex(global),
+        fetchChart(volatility, '1d', '1d', signal).then(
+          (r) => ({ symbol: volatility, level: r.meta?.regularMarketPrice ?? null }),
+          (err: unknown) => ({ symbol: volatility, level: null, error: errorText(err) }),
+        ),
+        Promise.all(sectorList.map(loadSector)),
+        Promise.allSettled([riksbankRates(fetchText, today), ecbRates(fetchText), fedRates(fetchText, today)]),
+      ]);
+
+      const inputs: RegimeInputs = {
+        asOf: today.toISOString().slice(0, 10),
+        home: homeIdx,
+        europe: europeIdx,
+        global: globalIdx,
+        vix,
+        sectors,
+        banks: { riksbank: bank(banks[0]), ecb: bank(banks[1]), fed: bank(banks[2]) },
+      };
+      const rules = classifyRules(inputs);
+      // Jev gets the same inputs even when the rules could not classify, so a
+      // partial-data day still yields a (flagged) read.
+      const jev = await askJev(inputs, signal);
+      const check = compare(rules, jev);
+
+      const failed = [
+        ...[homeIdx, europeIdx, globalIdx].filter((i) => i.error).map((i) => `${i.symbol}: ${i.error}`),
+        ...('error' in vix && vix.error ? [`${volatility}: ${vix.error}`] : []),
+        ...sectors.filter((s) => s.error).map((s) => `${s.symbol}: ${s.error}`),
+        ...banks.flatMap((b, i) => (b.status === 'rejected' ? [`${['Riksbank', 'ECB', 'Fed'][i]}: ${errorText(b.reason)}`] : [])),
+      ];
+
+      log(`regime done: rules ${rules.regime ?? 'insufficient'} | jev ${jev.status === 'ok' ? jev.regime : jev.status} | ${((Date.now() - started) / 1000).toFixed(1)}s`);
+      const body = {
+        as_of: inputs.asOf,
+        regime: rules.regime ?? 'INSUFFICIENT_DATA',
+        method: 'rules (market-snapshot six-signal matrix)',
+        votes: { bullish: rules.bullish, neutral: rules.neutral, bearish: rules.bearish },
+        signals: rules.signals,
+        divergence: rules.divergence,
+        central_bank_net: rules.centralBankNet,
+        central_banks: inputs.banks,
+        vix: vix.level,
+        sectors_5d_pct: Object.fromEntries(sectors.map((s) => [s.name, s.return5dPct])),
+        jev,
+        check,
+        failed_inputs: failed,
+      };
+      // Rules need 5 of 6 signals; below that the regime is unusable, so surface an error.
+      const text = JSON.stringify(body, null, 1);
+      return rules.regime ? ok(text) : fail(text);
     },
   );
 

@@ -13,7 +13,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@ai-sdk/typesafe-ai": "3.0.4",
     "@modelcontextprotocol/sdk": "1.30.0",
+    "ai": "7.0.109",
     "zod": "^4.6.4"
   },
   "devDependencies": {

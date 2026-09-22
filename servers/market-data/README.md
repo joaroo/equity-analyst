@@ -10,6 +10,7 @@ numbers instead of scraped ones:
 | `market_indicators` | Computed from Yahoo daily bars | SMA 20/50/200, RSI(14), MACD(12,26,9), 52w/20d ranges, volume ratios — up to 10 symbols |
 | `fx_rate` | Frankfurter (ECB) | Currency conversion, latest or point-in-time |
 | `central_bank_rates` | Riksbank SWEA API, ECB Data Portal, NY Fed Markets API | Policy rates, last changes, next decision date (official calendars) and data-derived stance for the Riksbank, ECB and Fed |
+| `market_regime` | All of the above, plus TypeSafe Jev (optional) | RISK-ON / TRANSITIONAL / RISK-OFF in one call: the market-snapshot six-signal matrix computed in code, with Jev's per-regime probabilities and agreement as a second opinion |
 
 No fundamentals: Yahoo's `quoteSummary` needs a cookie/crumb handshake and is too
 fragile. Fundamentals and narrative come from web search.
@@ -24,6 +25,8 @@ data is public, so the URL itself is the credential. Treat it like a password:
 - Disable reverse-proxy access logs for this route — they record the full path.
 - If it leaks, generate a new secret, redeploy, and update the connector.
 
+With `TYPESAFE_AI_API_KEY` set, the URL also spends money: every uncached `market_regime` call is a billed Jev request. The key never leaves the server, and TypeSafe error details are logged, not returned. Spend is bounded by `JEV_CACHE_MINUTES` and `JEV_DAILY_LIMIT` (in memory, so a restart resets the day's count). Use a key dedicated to this server so it can be revoked alone.
+
 ## Configuration
 
 | Env var | Default | Notes |
@@ -32,6 +35,10 @@ data is public, so the URL itself is the credential. Treat it like a password:
 | `PORT` | `3000` | |
 | `RATE_LIMIT_PER_MINUTE` | `120` | Global inbound MCP requests |
 | `MAX_CONCURRENT_REQUESTS` | `16` | In-flight requests; excess get 503 |
+| `TYPESAFE_AI_API_KEY` | — (optional) | Enables the Jev second opinion in `market_regime`. Unset: rules only, `jev.status: "disabled"` |
+| `JEV_MODEL_ID` | `jev-latest` | Pin a Jev version to keep regime comparisons stable across runs |
+| `JEV_CACHE_MINUTES` | `60` | Reuse the last Jev answer for the same symbol set this long |
+| `JEV_DAILY_LIMIT` | `20` | Hard cap on billed Jev calls per UTC day; after it, rules only |
 
 Built-in limits:
 
