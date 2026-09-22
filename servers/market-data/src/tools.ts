@@ -21,7 +21,7 @@ import { performance } from 'node:perf_hooks';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { computeIndicators, type Bar } from './indicators.ts';
 import { describeChange, ecbRates, fedRates, HOLD_AFTER_DAYS, nextMeeting, riksbankRates, stanceOf, type BankRates } from './centralbanks.ts';
-import { askJev, classifyRules, compare, jevEnabled, type BankInput, type IndexInput, type RegimeInputs, type SectorInput } from './regime.ts';
+import { askJev, classifyRules, compare, indexSummary, jevEnabled, type BankInput, type IndexInput, type RegimeInputs, type SectorInput } from './regime.ts';
 import { z } from 'zod';
 
 const YAHOO_BASE = 'https://query1.finance.yahoo.com/v8/finance/chart';
@@ -565,12 +565,14 @@ export function createServer(): McpServer {
         }
       };
 
-      const bank = (r: PromiseSettledResult<BankRates>): BankInput =>
-        r.status === 'rejected'
-          ? { stance: 'unverified', rate: null, lastChange: null }
-          : { stance: stanceOf(r.value, today).stance, rate: `${r.value.rateLabel} ${r.value.currentText}`, lastChange: describeChange(r.value.lastChange, today) };
+      const bank = (r: PromiseSettledResult<BankRates>, m: PromiseSettledResult<{ date: string } | null>): BankInput => ({
+        ...(r.status === 'rejected'
+          ? { stance: 'unverified' as const, rate: null, lastChange: null }
+          : { stance: stanceOf(r.value, today).stance, rate: `${r.value.rateLabel} ${r.value.currentText}`, lastChange: describeChange(r.value.lastChange, today) }),
+        nextDecision: m.status === 'fulfilled' ? (m.value?.date ?? null) : null,
+      });
 
-      const [homeIdx, europeIdx, globalIdx, vix, sectors, banks] = await Promise.all([
+      const [homeIdx, europeIdx, globalIdx, vix, sectors, banks, meetings] = await Promise.all([
         loadIndex(home),
         loadIndex(europe),
         loadIndex(global),
@@ -580,6 +582,7 @@ export function createServer(): McpServer {
         ),
         Promise.all(sectorList.map(loadSector)),
         Promise.allSettled([riksbankRates(fetchText, today), ecbRates(fetchText), fedRates(fetchText, today)]),
+        Promise.allSettled([nextMeeting('riksbank', fetchText, today), nextMeeting('ecb', fetchText, today), nextMeeting('fed', fetchText, today)]),
       ]);
 
       const inputs: RegimeInputs = {
@@ -589,7 +592,7 @@ export function createServer(): McpServer {
         global: globalIdx,
         vix,
         sectors,
-        banks: { riksbank: bank(banks[0]), ecb: bank(banks[1]), fed: bank(banks[2]) },
+        banks: { riksbank: bank(banks[0], meetings[0]), ecb: bank(banks[1], meetings[1]), fed: bank(banks[2], meetings[2]) },
       };
       const rules = classifyRules(inputs);
       // Jev gets the same inputs even when the rules could not classify, so a
@@ -611,6 +614,7 @@ export function createServer(): McpServer {
         method: 'rules (market-snapshot six-signal matrix)',
         votes: { bullish: rules.bullish, neutral: rules.neutral, bearish: rules.bearish },
         signals: rules.signals,
+        indices: { home: indexSummary(homeIdx), europe: indexSummary(europeIdx), global: indexSummary(globalIdx) },
         divergence: rules.divergence,
         central_bank_net: rules.centralBankNet,
         central_banks: inputs.banks,

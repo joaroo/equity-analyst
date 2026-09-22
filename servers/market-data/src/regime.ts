@@ -54,6 +54,8 @@ export interface BankInput {
   stance: Stance | 'unverified';
   rate: string | null;
   lastChange: string | null;
+  /** Next scheduled policy decision, YYYY-MM-DD, or null when unpublished or unreadable. */
+  nextDecision?: string | null;
 }
 
 export interface RegimeInputs {
@@ -317,6 +319,19 @@ async function callJev(inputs: RegimeInputs, signal: AbortSignal): Promise<JevRe
     const kind = /"error_type":"([a-z_]+)"/.exec(detail)?.[1] ?? (err instanceof Error && err.name === 'TimeoutError' ? 'timeout' : 'request_failed');
     return { status: 'failed', model: modelId, reason: kind };
   }
+}
+
+/** Per-index trend figures in the market-snapshot output schema's units. */
+export function indexSummary(index: IndexInput) {
+  const ind = index.indicators;
+  return {
+    name: index.name,
+    symbol: index.symbol,
+    close: ind ? round(ind.close) : null,
+    close_date: ind?.asOf ?? null,
+    vs_50ma_pct: ind ? pctFrom(ind.sma50, ind.close) : null,
+    vs_200ma_pct: ind ? pctFrom(ind.sma200, ind.close) : null,
+  };
 }
 
 /** Where rules and Jev meet: agreement plus how decisive Jev was. */

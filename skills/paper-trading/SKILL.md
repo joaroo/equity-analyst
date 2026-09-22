@@ -20,7 +20,9 @@ description: Paper-trading ledger rules for equity-analyst — read the paper po
 | `paper-trades.csv` | One row per simulated trade: `date,run,ticker,side,quantity,price,currency,fx_to_sek,gross_sek,fee_sek,net_sek,cash_after_sek,decision,reason` | Appended |
 | `paper-performance.csv` | One row per run: `date,run,holdings_value_sek,funds_value_sek,cash_sek,total_value_sek,cost_basis_sek,unrealized_pnl_sek,realized_pnl_sek,fees_paid_sek,return_since_start_pct,omx_since_start_pct,msci_world_sek_since_start_pct` | Appended |
 
-`run` is `analyze` or `index-funds`. Never delete or rewrite existing CSV rows.
+| `regime-calibration.csv` | One row per `/analyze` run, from the market context's `regime_check`: `date,rules_regime,jev_status,jev_regime,p_risk_on,p_transitional,p_risk_off,agreement,omx_close` | Appended |
+
+`run` is `analyze` or `index-funds`. Never delete or rewrite existing CSV rows. `regime-calibration.csv` records whether Jev's regime probabilities are reliable enough to act on later; `omx_close` (from `quotes`) lets later rows score each call against what the market did next. Create it with its header row if missing.
 
 ## Workflow Steps
 
@@ -65,7 +67,7 @@ Take the final decisions exactly as reported. Execute in this order: all **sells
 
 1. Value all holdings (`quotes` × `fx`) and funds (ETF via `quotes`; mutual funds at `last_nav`, updated when the index-fund report cites a newer dated NAV).
 2. Compute `return_since_start_pct` = total value ÷ (seed total value at start) − 1. Store the seed total in the ledger as `start_total_value_sek` on the first run if missing. Benchmark returns: `^OMX` vs its start level; `XDWD.DE` converted to SEK vs its start level in SEK.
-3. Append one row to `paper-performance.csv`.
+3. Append one row to `paper-performance.csv`. For `/analyze`, also append one row to `regime-calibration.csv` (empty fields where Jev is disabled or failed; probabilities as decimals). Skip it if the file already has a row for today, so re-runs do not double-count a day.
 4. Set `last_run_by_kind.<kind>` to today's date and write `paper-portfolio.json` with 2-space indentation.
 
 ### Step 4 — Report
@@ -89,6 +91,6 @@ Add a **Paper Ledger** section at the end of the report:
 - [ ] Same-day guard checked before executing
 - [ ] Sells executed before buys; cash never negative
 - [ ] Every trade priced from `quotes`/`fx` (or a cited NAV) with fees from the profile
-- [ ] One CSV row per executed or skipped trade; one performance row per run
+- [ ] One CSV row per executed or skipped trade; one performance row per run; one `regime-calibration.csv` row per `/analyze` run
 - [ ] `paper-portfolio.json` written and valid JSON; `last_run_by_kind` updated
 - [ ] Paper Ledger section present in the report

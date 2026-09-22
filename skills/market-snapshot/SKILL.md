@@ -17,6 +17,10 @@ Read `investor-profile.json` first. It defines the home market, the regional and
 
 ## Data Source Priority
 
+**Preferred path — 2 calls.** `regime` fetches the index trend, VIX, European sector returns and central-bank stance, applies the Step 2 signal matrix in code, and returns the classification with every signal. Call `regime` and `quotes` (index levels and `^VIX`) in parallel, then go to Step 3. Pass the profile's symbols to `regime` only if they differ from the defaults (`^OMX`, `^STOXX`, `^GSPC`, `^VIX`, the sector ETFs below).
+
+**Fallback path** — only if `regime` is unavailable or returns an error: collect the inputs yourself with the connectors below and apply Step 2 by hand. Say in `implications` that the fallback path was used.
+
 1. `quotes` connector — index and volatility levels in one call: home index (`^OMX`), regional index (`^STOXX`), global index (`^GSPC`), `^VIX`
 2. `indicators` connector — 50/200-day moving-average distance for the home, regional and global indices in one call
 3. `history` connector — 5-day returns for the European sector proxies (`range: "5d"`, `interval: "1d"`)
@@ -31,7 +35,9 @@ Read `investor-profile.json` first. It defines the home market, the regional and
 
 ### Step 1 — Fetch Market Data
 
-Collect in parallel where possible:
+**Preferred path:** one `regime` call and one `quotes` call (`^OMX`, `^STOXX`, `^GSPC`, `^VIX`), in parallel. From `regime` take `regime`, `indices.*.vs_50ma_pct` / `vs_200ma_pct`, `central_banks` (stance, rate, last change, `nextDecision`), `central_bank_net`, `sectors_5d_pct`, `divergence` and `jev`/`check`. Levels come from `quotes`. If `failed_inputs` is non-empty, list them in `implications`. Optional forward guidance still follows the research budget.
+
+**Fallback path** — collect in parallel where possible:
 
 1. Index levels (`quotes`): OMX Stockholm 30 `^OMX`, STOXX Europe 600 `^STOXX`, S&P 500 `^GSPC`, and `^VIX`
 2. Trend (`indicators`): price vs 50-day and 200-day MA for `^OMX`, `^STOXX`, `^GSPC`
@@ -43,7 +49,9 @@ Collect in parallel where possible:
 
 ### Step 2 — Regime Classification
 
-Apply the signal matrix:
+**Preferred path:** use `regime` from the tool as the regime. Do not reclassify it, and do not change it to match the Jev opinion. If the tool returned `INSUFFICIENT_DATA` (an error), use the fallback path.
+
+**Fallback path:** apply the signal matrix:
 
 | Signal | Risk-On | Transitional | Risk-Off |
 |--------|---------|--------------|----------|
@@ -104,6 +112,13 @@ Return only the JSON schema below. No preamble, no prose. Report index levels ex
     "lagging": ["Utilities -X%", "Health Care -X%"]
   },
   "divergence": null,
+  "regime_check": {
+    "method": "tool|fallback",
+    "jev_status": "ok|disabled|failed",
+    "jev_regime": "RISK-ON|TRANSITIONAL|RISK-OFF|null",
+    "jev_probabilities": { "RISK-ON": 0.0, "TRANSITIONAL": 0.0, "RISK-OFF": 0.0 },
+    "agreement": "agree|disagree|jev_unavailable|rules_insufficient"
+  },
   "implications": "2-sentence investment implication summary for a Swedish portfolio"
 }
 ```
@@ -117,6 +132,8 @@ Return only the JSON schema below. No preamble, no prose. Report index levels ex
 - Do not take central-bank rates, moves or stance from news or search results — use `rates`
 - Do not classify regime with fewer than 5 of the 6 signals confirmed
 - Do not cache this output across sessions — always fetch fresh
+- Do not let the Jev opinion in `regime_check` change `regime` — it is recorded for calibration only. When `agreement` is `disagree`, or Jev's top probability is below 0.55, add one clause to `implications` saying the regime call is uncertain; nothing more
+- Do not fall back to the manual path when `regime` succeeded
 
 ## Verification Checklist
 
@@ -126,5 +143,6 @@ Return only the JSON schema below. No preamble, no prose. Report index levels ex
 - [ ] Central-bank rates, stances and last changes copied from `rates`; `net` computed with the weighted score (Riksbank ×3, ECB ×2, Fed ×1)
 - [ ] `sectors_5d_europe` contains at least 2 leading and 2 lagging entries
 - [ ] `divergence` filled when home and global indices disagree
+- [ ] `regime_check` copied from the tool's `jev` and `check` fields (fallback path: `method: "fallback"`, `jev_status: "disabled"`, Jev fields null, `agreement: "jev_unavailable"`)
 - [ ] JSON is valid with no trailing prose
 - [ ] VIX signal label matches the level (Greed <15, Neutral 15–20, Caution 20–25, Fear >25)

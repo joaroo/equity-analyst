@@ -54,6 +54,12 @@
       "purpose": "Riksbank, ECB and Fed policy rates, last changes (effective dates) and a data-derived stance from official feeds: Riksbank SWEA API, ECB Data Portal, NY Fed Markets API.",
       "docs": "connectors/market-data/CONNECTOR.md"
     },
+    "regime": {
+      "server": "market-data",
+      "tool": "market_regime",
+      "purpose": "Market regime (RISK-ON / TRANSITIONAL / RISK-OFF) in one call: index trend, VIX, European sector returns and central-bank stance fetched server-side, the market-snapshot signal matrix applied in code, plus an advisory TypeSafe Jev opinion with per-regime probabilities.",
+      "docs": "connectors/market-data/CONNECTOR.md"
+    },
     "research": {
       "primary": "WebSearch",
       "follow_up": "WebFetch",
@@ -76,7 +82,7 @@
   "tool_name_resolution": "MCP tools appear with a client-specific prefix (Claude Code: mcp__<server>__<tool>; claude.ai/Cowork connectors use the connector name). Resolve an alias by its tool name suffix.",
   "example_config": ".mcp.json.example",
   "rules": [
-    "Any figure quotes, history, indicators, fx or rates can produce must come from those tools — never from search results or hand calculation",
+    "Any figure quotes, history, indicators, fx, rates or regime can produce must come from those tools — never from search results or hand calculation",
     "Use research (WebSearch/WebFetch) only for data no structured tool provides, and label it search-derived",
     "Never call write tools on the portfolio connector (orders, trade tickets, alerts, watchlist edits)",
     "Do not hardcode model names in skills or commands — use connector aliases only",
