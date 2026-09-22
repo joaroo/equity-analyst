@@ -9,7 +9,7 @@
       "name": "equity-analyst",
       "source": "./",
       "description": "Systematic investment research: fundamental analysis, technical analysis, portfolio management, earnings preview/review, valuation, and catalyst calendar.",
-      "version": "3.2.0",
+      "version": "3.2.1",
       "author": {
         "name": "joaroo"
       },

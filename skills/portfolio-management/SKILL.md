@@ -201,7 +201,7 @@ Resolution: For each stock, identify specific disagreement, determine which conc
 
 **Diversification:**
 - No more than 60% in one sector (unless exceptional conviction)
-- No more than 40% of weekly capital in one stock, and no position above 10% of total portfolio value
+- No more than 40% of weekly capital in one stock, and no buy or add may take a position above 10% of total portfolio value. The cap limits new money only: a position that has drifted above 10% on price gains is flagged in the report, not trimmed because of the cap — TRIM it only on merit
 - If two stocks highly correlated, reduce total exposure
 - Currency exposure: state the SEK vs foreign-currency split of the portfolio after the decisions; flag if a single foreign currency exceeds half of equity exposure
 

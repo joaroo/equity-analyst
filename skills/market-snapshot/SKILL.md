@@ -119,13 +119,14 @@ Return only the JSON schema below. No preamble, no prose. Report index levels ex
     "jev_probabilities": { "RISK-ON": 0.0, "TRANSITIONAL": 0.0, "RISK-OFF": 0.0 },
     "agreement": "agree|disagree|jev_unavailable|rules_insufficient"
   },
-  "implications": "2-sentence investment implication summary for a Swedish portfolio"
+  "implications": "Two sentences on market conditions for a Swedish investor: what drives the regime and which dated events inside the next 4 weeks could change it. Conditions only, no portfolio advice."
 }
 ```
 
 ## Anti-Patterns
 
 - Do not emit prose — JSON output only
+- Do not give portfolio advice in `implications` — no buy/sell/add/trim, no "favour", "overweight" or "avoid", no sizing or cash guidance. Describe conditions (what drives the regime, which dated events could change it); allocation decisions belong to the fundamental analyst and portfolio manager, who read this block
 - Do not take index levels, moving averages, VIX or sector returns from search results — use `quotes`/`indicators`/`history`
 - Do not classify the regime from US signals alone — the home and European signals are required
 - Do not exceed 2 research calls
@@ -145,4 +146,5 @@ Return only the JSON schema below. No preamble, no prose. Report index levels ex
 - [ ] `divergence` filled when home and global indices disagree
 - [ ] `regime_check` copied from the tool's `jev` and `check` fields (fallback path: `method: "fallback"`, `jev_status: "disabled"`, Jev fields null, `agreement: "jev_unavailable"`)
 - [ ] JSON is valid with no trailing prose
+- [ ] `implications` describes conditions only, with no buy/sell, sector-tilt or sizing advice
 - [ ] VIX signal label matches the level (Greed <15, Neutral 15–20, Caution 20–25, Fear >25)
