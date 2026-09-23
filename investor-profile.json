@@ -162,24 +162,71 @@
     "terminal_growth": "Do not exceed the long-run inflation target of the reporting currency area (2% for SEK, EUR and USD); default 2%."
   },
   "paper_trading": {
-    "_about": "Used only in paper mode (skills/paper-trading). Fees model Montrose Access as quoted in the broker evaluation; verify before relying on them.",
+    "_about": "Used only in paper mode (skills/paper-trading). Fees model Montrose Access from https://www.montrose.io/priser (checked 2026-09-23): 0.15% commission with a per-market minimum (and a 99 SEK cap in the Nordics), plus 0.12% currency exchange on non-SEK trades.",
     "ledger_file": "paper-portfolio.json",
     "fees": {
-      "nordic_markets": {
-        "suffixes": [
-          ".ST",
-          ".OL",
-          ".CO",
-          ".HE"
-        ],
-        "rate_pct": 0.15,
-        "min_sek": 1,
-        "max_sek": 99
-      },
-      "other_markets": {
-        "rate_pct": 0.15,
-        "min_sek": 1,
-        "max_sek": null
+      "rate_pct": 0.15,
+      "markets": [
+        {
+          "name": "Nordics",
+          "suffixes": [
+            ".ST",
+            ".OL",
+            ".CO",
+            ".HE"
+          ],
+          "min_sek": 1,
+          "max_sek": 99
+        },
+        {
+          "name": "USA",
+          "suffixes": [
+            ""
+          ],
+          "min_sek": 1,
+          "max_sek": null
+        },
+        {
+          "name": "Germany, France, Switzerland, UK",
+          "suffixes": [
+            ".DE",
+            ".F",
+            ".PA",
+            ".SW",
+            ".L"
+          ],
+          "min_sek": 19,
+          "max_sek": null
+        },
+        {
+          "name": "Austria, Portugal, Italy, Spain, Belgium, Netherlands, Canada, Ireland",
+          "suffixes": [
+            ".VI",
+            ".LS",
+            ".MI",
+            ".MC",
+            ".BR",
+            ".AS",
+            ".TO",
+            ".V",
+            ".IR"
+          ],
+          "min_sek": 39,
+          "max_sek": null
+        },
+        {
+          "name": "Poland",
+          "suffixes": [
+            ".WA"
+          ],
+          "min_sek": 99,
+          "max_sek": null
+        }
+      ],
+      "unlisted_suffix": {
+        "min_sek": 39,
+        "max_sek": null,
+        "_about": "A suffix not listed above: charge this and log the suffix, so the table can be extended."
       },
       "fx_fee_pct": 0.12,
       "funds": {

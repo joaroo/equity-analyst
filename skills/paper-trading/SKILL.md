@@ -51,10 +51,21 @@ Take the final decisions exactly as reported. Execute in this order: all **sells
 **Prices:** stocks and ETFs at the current `quotes` price at execution time (record it). Mutual funds without a quote symbol at the NAV the index-fund report cites (with its date); if no NAV was found, do not trade that fund and log why. Convert with `fx` (latest).
 
 **Fees (Montrose Access, from `investor-profile.json` → `paper_trading.fees`):**
-- Nordic markets (Stockholm, Oslo, Copenhagen, Helsinki): 0.15% of trade value, min 1 SEK, max 99 SEK
-- Other markets: 0.15%, min 1 SEK, no cap
-- Currency exchange on non-SEK trades: +0.12% of trade value in SEK
+- Commission: 0.15% of trade value in SEK, raised to the market's minimum and capped at its maximum. Find the market by the ticker's `quotes` suffix in `fees.markets` (a US ticker has no suffix):
+
+  | Market | Minimum | Maximum |
+  |---|---|---|
+  | Nordics (`.ST` `.OL` `.CO` `.HE`) | 1 SEK | 99 SEK |
+  | USA | 1 SEK | none |
+  | Germany, France, Switzerland, UK | 19 SEK | none |
+  | Austria, Portugal, Italy, Spain, Belgium, Netherlands, Canada, Ireland | 39 SEK | none |
+  | Poland | 99 SEK | none |
+
+  A suffix not in the table: use `fees.unlisted_suffix` (39 SEK minimum) and name the suffix in the trade's `reason`.
+- Currency exchange on non-SEK trades: +0.12% of trade value in SEK, with no minimum
 - Funds: no commission
+
+On small European trades the minimum dominates: a 4,000 SEK buy in Frankfurt costs 19 SEK commission, not 6 SEK.
 
 **Cash rules:** a buy that would take cash below zero is reduced to the largest affordable whole number of shares; if that is zero, skip it and log `skipped — insufficient cash`. Sells add net proceeds to cash before buys run.
 
