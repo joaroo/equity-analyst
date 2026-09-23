@@ -3,20 +3,13 @@
   "connectors": {
     "portfolio": {
       "primary": "auto",
-      "resolution": "Bound whenever a broker connector with these read tools is available in the session (e.g. Montrose or IBKR added as a connector). There is no fixed tool name to configure.",
+      "resolution": "Bound whenever a broker connector with these read tools is available in the session (e.g. Montrose added as a connector). There is no fixed tool name to configure.",
       "purpose": "Read-only portfolio state: accounts, holdings, cost basis, cash per currency, and watchlists. Replaces pasting the portfolio in by hand. Read by the /analyze orchestrator only.",
       "read_tools_only": true,
       "example_providers": {
         "montrose": [
           "get_user_accounts",
           "get_holdings",
-          "get_watchlists",
-          "get_watchlist"
-        ],
-        "ibkr": [
-          "get_account_positions",
-          "get_account_balances",
-          "get_account_summary",
           "get_watchlists",
           "get_watchlist"
         ]

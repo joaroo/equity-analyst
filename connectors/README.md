@@ -6,7 +6,7 @@ Connectors are the data source layer for this plugin. Most are MCP servers expos
 
 | Alias | Provider | Role |
 |-------|----------|------|
-| `portfolio` | Broker MCP (Montrose or IBKR) — read tools only | Accounts, holdings, cost basis, cash |
+| `portfolio` | Broker MCP (e.g. Montrose) — read tools only | Accounts, holdings, cost basis, cash |
 | `quotes` | [market-data MCP](market-data/CONNECTOR.md) | Current prices |
 | `history` | [market-data MCP](market-data/CONNECTOR.md) | Raw OHLCV bars for support/resistance and returns |
 | `indicators` | [market-data MCP](market-data/CONNECTOR.md) | Computed MAs, RSI, MACD, ranges, volume ratios |
@@ -21,9 +21,8 @@ The `portfolio` alias is unbound until you choose a broker. Tested options:
 | Broker | Read tools used | Notes |
 |--------|-----------------|-------|
 | Montrose (`https://mcp.montrose.io/`, OAuth) | `get_user_accounts`, `get_holdings`, `get_watchlists`, `get_watchlist` | Accounts addressable by ID (pick the ISK). Access expires after 7 days. No market data. Also exposes write tools — never used. |
-| IBKR (`https://api.ibkr.com/v1/api/mcp-public`, OAuth) | `get_account_positions`, `get_account_balances`, `get_account_summary` | One connected account at a time. Also has price history and options, not used by the plugin yet. |
 
-Neither broker provides fundamentals or analyst consensus.
+Montrose does not provide fundamentals or analyst consensus.
 
 **Tool permissions.** Plugin agents cannot restrict MCP servers, so enforce read-only in the client: in the broker connector's tool permissions, set every write/delete tool (trade tickets, alerts, watchlist changes) to never allowed, and set the read tools above to always allowed — scheduled runs cannot answer approval prompts.
 

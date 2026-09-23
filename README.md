@@ -159,7 +159,7 @@ Defined in `connectors.json`. Skills reference aliases only — real tool names 
 
 | Alias | Provider | Purpose | Setup |
 |-------|----------|---------|-------|
-| `portfolio` | Broker MCP — Montrose or IBKR (unbound by default) | Holdings, cost basis, cash | [connectors/](connectors/README.md#portfolio-provider) |
+| `portfolio` | Broker MCP, e.g. Montrose (unbound by default) | Holdings, cost basis, cash | [connectors/](connectors/README.md#portfolio-provider) |
 | `quotes` | Self-hosted market-data MCP | Current prices | [connectors/market-data/](connectors/market-data/CONNECTOR.md) |
 | `history` | Self-hosted market-data MCP | Raw OHLCV bars → support/resistance, returns | [connectors/market-data/](connectors/market-data/CONNECTOR.md) |
 | `indicators` | Self-hosted market-data MCP | Computed MAs, RSI, MACD, ranges, volume ratios | [connectors/market-data/](connectors/market-data/CONNECTOR.md) |

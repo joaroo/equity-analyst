@@ -155,7 +155,7 @@
     },
     "max_single_position_pct_of_portfolio": 10,
     "binary_event_hold_through_max_risk_pct_of_portfolio": 0.5,
-    "min_order_note": "Check the broker's minimum commission before recommending small orders (e.g. IBKR Stockholm 0.05%, min 10 SEK; Montrose 0.15%, min 1 SEK)."
+    "min_order_note": "Check the broker's minimum commission before recommending small orders (e.g. Montrose 0.15%, min 1 SEK)."
   },
   "valuation_defaults": {
     "discount_rate": "Local 10-year government bond yield for the company's reporting currency (look it up and cite it) + about 5 percentage points equity risk premium, adjusted for size and business risk. State each input.",
