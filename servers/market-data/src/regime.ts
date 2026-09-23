@@ -8,6 +8,11 @@
  * Where the rules are mechanical, Jev's value is the distribution: a 0.45/0.40/0.15
  * split says the call is fragile even when the rules land cleanly on one label.
  *
+ * Alongside the regime, the same single call asks five atomic questions (trend
+ * health, stress, rotation, policy headwind, home divergence) and returns TypeSafe's
+ * per-question confidence. They are logged for calibration only: nothing in code or
+ * in the skills acts on them until they have been scored against outcomes.
+ *
  * Jev runs only when TYPESAFE_AI_API_KEY is set. Any Jev failure degrades to the
  * rules result with the reason attached; it never fails the tool.
  */
@@ -15,6 +20,9 @@
 import { experimental_evaluate } from 'ai';
 import { typeSafeAi } from '@ai-sdk/typesafe-ai';
 import type { Indicators } from './indicators.ts';
+import { confidenceOf, DailyCap, intEnv, jevEnabled, jevFailureKind, jevModelId } from './jev.ts';
+
+export { jevEnabled };
 
 export type Regime = 'RISK-ON' | 'TRANSITIONAL' | 'RISK-OFF';
 export type Stance = 'Tightening' | 'Easing' | 'On hold';
@@ -85,17 +93,27 @@ export interface RulesResult {
   sectorSpreadPp: number | null;
 }
 
+/** An answer as the SDK returns it: choice + distribution, score + distribution, or P(true). */
+export type JevAnswer =
+  | { type: 'choice'; choice: string; probabilities?: Record<string, number> }
+  | { type: 'score'; score: number; probabilities?: Record<string, number> }
+  | { type: 'boolean'; probability: number };
+
 export interface JevResult {
   status: 'ok' | 'disabled' | 'failed';
   model?: string;
   regime?: Regime;
   probabilities?: Record<Regime, number>;
+  /** The five atomic judgments, keyed by question id. Calibration only. */
+  atomic?: Record<string, JevAnswer>;
+  /** TypeSafe confidence per choice/score question (not a probability). */
+  confidence?: Record<string, number>;
   latencyMs?: number;
   inputTokens?: number;
   reason?: string;
 }
 
-const round = (value: number, places = 2) => Number(value.toFixed(places));
+export const round = (value: number, places = 2) => Number(value.toFixed(places));
 
 export function pctFrom(base: number | null, value: number): number | null {
   return base === null || base === 0 ? null : round(((value - base) / base) * 100);
@@ -234,11 +252,59 @@ const QUESTIONS = {
       'RISK-OFF': 'Broad downtrend, elevated volatility, defensives leading or tightening central banks. Reduce new exposure and favour cash and quality.',
     },
   },
+  trend_health: {
+    type: 'score',
+    instructions: {
+      question: 'How healthy is the equity trend across the home (OMX Stockholm 30), European (STOXX 600) and global (S&P 500) indices?',
+      inputs: 'Distance from the 50-day and 200-day moving averages, moving-average order, distance from the 52-week high, RSI and MACD. Weight the home index most.',
+      caution: 'Missing fields are null; do not infer them.',
+    },
+    criteria: [
+      'Broad downtrend: indices below both moving averages, 50-day under 200-day, momentum negative',
+      'Weakening: indices under the 50-day average or rolling over, momentum turning down',
+      'Mixed: indices near their averages or disagreeing with each other',
+      'Healthy: indices above both averages, momentum positive but not stretched',
+      'Strong broad uptrend: all indices well above both averages, near 52-week highs, momentum confirming',
+    ],
+  },
+  stress_elevated: {
+    type: 'boolean',
+    instructions: {
+      question: 'Is market stress elevated right now?',
+      inputs: 'VIX (below 15 calm, above 20 stressed), sharp momentum breaks (MACD bearish crossovers, RSI below 35), indices falling through their moving averages.',
+      caution: 'A single soft signal is not elevated stress. Missing fields are null; do not infer them.',
+    },
+  },
+  rotation: {
+    type: 'choice',
+    instructions: {
+      question: 'Which way is European sector rotation pointing?',
+      inputs: 'Five-day returns of the European sector ETFs, grouped as cyclical, defensive and energy, and the cyclicals-minus-defensives spread in percentage points.',
+      caution: 'A spread within about 1 percentage point is noise. Missing fields are null; do not infer them.',
+    },
+    criteria: {
+      cyclicals_leading: 'Cyclical sectors clearly outperform defensives: investors are adding risk.',
+      mixed: 'No clear leadership, or the spread is within noise.',
+      defensives_leading: 'Defensive sectors clearly outperform cyclicals: investors are reducing risk.',
+    },
+  },
+  policy_headwind: {
+    type: 'boolean',
+    instructions: {
+      question: 'Is central-bank policy a net headwind for Swedish equities right now?',
+      inputs: 'Stance, rate and last change for the Riksbank (matters most), the ECB, then the Fed. Recent tightening is a headwind; easing or a long hold is not.',
+      caution: 'An unverified stance is unknown, not neutral evidence of a headwind.',
+    },
+  },
+  home_diverges: {
+    type: 'boolean',
+    instructions: {
+      question: 'Is the Swedish home index (OMX Stockholm 30) trending materially differently from the global index (S&P 500)?',
+      inputs: 'Distance from the 50-day and 200-day moving averages, moving-average order, RSI and MACD for both indices.',
+      caution: 'Small differences in degree are not divergence; opposite trend directions are.',
+    },
+  },
 } as const;
-
-export function jevEnabled(): boolean {
-  return Boolean(process.env.TYPESAFE_AI_API_KEY);
-}
 
 // The endpoint is a capability URL, so anyone holding it can trigger Jev calls
 // billed to our key. Two bounds keep a leaked URL from becoming a bill: a result
@@ -248,13 +314,7 @@ export function jevEnabled(): boolean {
 const JEV_CACHE_MS = intEnv('JEV_CACHE_MINUTES', 60) * 60_000;
 const JEV_DAILY_LIMIT = intEnv('JEV_DAILY_LIMIT', 20);
 const jevCache = new Map<string, { at: number; result: JevResult }>();
-let jevDay = '';
-let jevCallsToday = 0;
-
-function intEnv(name: string, fallback: number): number {
-  const value = Number(process.env[name]);
-  return Number.isInteger(value) && value >= 0 ? value : fallback;
-}
+const jevCap = new DailyCap(JEV_DAILY_LIMIT);
 
 /** Cache key: which instruments were asked about, not their values. */
 function cacheKey(inputs: RegimeInputs): string {
@@ -270,16 +330,9 @@ export async function askJev(inputs: RegimeInputs, signal: AbortSignal): Promise
     return { ...cached.result, reason: `cached ${Math.round((Date.now() - cached.at) / 60_000)} min ago` };
   }
 
-  const day = new Date().toISOString().slice(0, 10);
-  if (day !== jevDay) {
-    jevDay = day;
-    jevCallsToday = 0;
-  }
-  if (jevCallsToday >= JEV_DAILY_LIMIT) {
+  if (!jevCap.take()) {
     return { status: 'failed', reason: `daily Jev limit (${JEV_DAILY_LIMIT}) reached; rules result only until tomorrow (UTC)` };
   }
-  // Counted before the call: a failed request may still be billed.
-  jevCallsToday += 1;
 
   const result = await callJev(inputs, signal);
   if (result.status === 'ok') {
@@ -291,7 +344,7 @@ export async function askJev(inputs: RegimeInputs, signal: AbortSignal): Promise
 }
 
 async function callJev(inputs: RegimeInputs, signal: AbortSignal): Promise<JevResult> {
-  const modelId = process.env.JEV_MODEL_ID || 'jev-latest';
+  const modelId = jevModelId();
   const started = performance.now();
   try {
     const r = await experimental_evaluate({
@@ -301,23 +354,20 @@ async function callJev(inputs: RegimeInputs, signal: AbortSignal): Promise<JevRe
       maxRetries: 1,
       abortSignal: AbortSignal.any([signal, AbortSignal.timeout(JEV_TIMEOUT_MS)]),
     });
-    const answer = r.answers.regime;
+    const { regime: answer, ...atomic } = r.answers;
     const p = answer.probabilities ?? { [answer.choice]: 1 };
     return {
       status: 'ok',
-      model: modelId,
+      model: r.response?.modelId ?? modelId,
       regime: answer.choice as Regime,
       probabilities: { 'RISK-ON': p['RISK-ON'] ?? 0, TRANSITIONAL: p.TRANSITIONAL ?? 0, 'RISK-OFF': p['RISK-OFF'] ?? 0 },
+      atomic: atomic as Record<string, JevAnswer>,
+      confidence: confidenceOf(r.providerMetadata),
       latencyMs: Math.round(performance.now() - started),
       inputTokens: r.usage?.inputTokens ?? undefined,
     };
   } catch (err) {
-    // Full detail goes to the server log only; callers hold nothing but the URL and
-    // should not learn anything about our TypeSafe account from error text.
-    const detail = err instanceof Error ? err.message : String(err);
-    console.error(`[market-data] jev failed: ${detail}`);
-    const kind = /"error_type":"([a-z_]+)"/.exec(detail)?.[1] ?? (err instanceof Error && err.name === 'TimeoutError' ? 'timeout' : 'request_failed');
-    return { status: 'failed', model: modelId, reason: kind };
+    return { status: 'failed', model: modelId, reason: jevFailureKind(err, 'regime') };
   }
 }
 

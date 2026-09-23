@@ -22,6 +22,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { computeIndicators, type Bar } from './indicators.ts';
 import { describeChange, ecbRates, fedRates, HOLD_AFTER_DAYS, nextMeeting, riksbankRates, stanceOf, type BankRates } from './centralbanks.ts';
 import { askJev, classifyRules, compare, indexSummary, jevEnabled, type BankInput, type IndexInput, type RegimeInputs, type SectorInput } from './regime.ts';
+import { DIRECTION_BAND_PCT, HORIZON_TRADING_DAYS, judgeStocks, type StockInput } from './judgments.ts';
 import { z } from 'zod';
 
 const YAHOO_BASE = 'https://query1.finance.yahoo.com/v8/finance/chart';
@@ -32,6 +33,7 @@ const FETCH_TIMEOUT_MS = 15_000;
 export const TOOL_DEADLINE_MS = 45_000;
 const MAX_SYMBOLS = 20;
 const MAX_INDICATOR_SYMBOLS = 10;
+const MAX_JUDGMENT_SYMBOLS = 20;
 const MAX_HISTORY_ROWS = 400;
 const MAX_UPSTREAM_BYTES = 5 * 1024 * 1024;
 
@@ -243,6 +245,14 @@ function num(value: number | null | undefined): string {
   if (value === null || value === undefined || Number.isNaN(value)) return '-';
   const places = Math.abs(value) >= 1 ? 2 : 6;
   return String(Number(value.toFixed(places)));
+}
+
+/** Close-to-close return over the last `sessions` bars, percent; null when there are too few bars. */
+function returnOver(bars: Bar[], sessions: number): number | null {
+  if (bars.length <= sessions) return null;
+  const from = bars[bars.length - 1 - sessions].close;
+  const to = bars[bars.length - 1].close;
+  return from ? Number((((to - from) / from) * 100).toFixed(2)) : null;
 }
 
 /** Daily bars with complete high/low/close; gaps (holidays, halted days) are skipped. */
@@ -627,6 +637,66 @@ export function createServer(): McpServer {
       // Rules need 5 of 6 signals; below that the regime is unusable, so surface an error.
       const text = JSON.stringify(body, null, 1);
       return rules.regime ? ok(text) : fail(text);
+    },
+  );
+
+  server.registerTool(
+    'stock_judgments',
+    {
+      description: `Shadow per-stock judgments from the TypeSafe Jev model for up to ${MAX_JUDGMENT_SYMBOLS} securities, for calibration logging only — do not use them to change a score, verdict or size. For each stock: ${HORIZON_TRADING_DAYS}-trading-day direction (up / flat / down, bands ±${DIRECTION_BAND_PCT}%), trend strength (score 1–5), overextended (probability), and event risk when eventDaysAway gives the days to the next binary event. Returns JSON with the compact state Jev saw, the reference close, answers with probabilities, and TypeSafe confidence. Stocks Jev could not judge carry status failed or disabled with a reason.`,
+      inputSchema: {
+        symbols: z.array(symbolSchema).min(1).max(MAX_JUDGMENT_SYMBOLS).describe('Ticker symbols including exchange suffix, e.g. ["VOLV-B.ST", "MSFT"]'),
+        home: z.object({ name: z.string().min(1).max(60), symbol: symbolSchema }).default({ name: 'OMX Stockholm 30', symbol: '^OMX' }),
+        eventDaysAway: z
+          .record(symbolSchema, z.number().int().min(0).max(365))
+          .optional()
+          .describe('Calendar days to the next known report or decision per symbol, from the catalyst calendar. Omit symbols with no confirmed date.'),
+      },
+      annotations: READ_ONLY,
+    },
+    async ({ symbols, home, eventDaysAway }, extra) => {
+      log(`judgments: ${symbols.join(', ')}${jevEnabled() ? '' : ' (jev disabled)'}`);
+      const started = Date.now();
+      const signal = toolSignal(extra);
+
+      const load = async (symbol: string): Promise<StockInput> => {
+        try {
+          const chart = await fetchChart(symbol, '2y', '1d', signal);
+          const bars = barsOf(chart);
+          const meta = chart.meta as ChartMeta;
+          return {
+            symbol,
+            name: meta.longName ?? meta.shortName ?? null,
+            currency: meta.currency ?? null,
+            indicators: computeIndicators(bars),
+            return20dPct: returnOver(bars, HORIZON_TRADING_DAYS),
+            daysToEvent: eventDaysAway?.[symbol],
+          };
+        } catch (err) {
+          return { symbol, name: null, currency: null, indicators: null, return20dPct: null, daysToEvent: eventDaysAway?.[symbol], error: errorText(err) };
+        }
+      };
+
+      const [homeBars, stocks] = await Promise.all([
+        fetchChart(home.symbol, '3mo', '1d', signal).then(barsOf, () => [] as Bar[]),
+        Promise.all(symbols.map(load)),
+      ]);
+      const homeState = { name: home.name, return20dPct: returnOver(homeBars, HORIZON_TRADING_DAYS) };
+      const judgments = await judgeStocks(stocks, homeState, signal);
+
+      const okCount = judgments.filter((j) => j.status === 'ok').length;
+      log(`judgments done: ${okCount}/${symbols.length} ok | ${((Date.now() - started) / 1000).toFixed(1)}s`);
+      const body = {
+        as_of: new Date().toISOString().slice(0, 10),
+        horizon_trading_days: HORIZON_TRADING_DAYS,
+        direction_band_pct: DIRECTION_BAND_PCT,
+        home_index: { ...home, return_20d_pct: homeState.return20dPct },
+        purpose: 'shadow — log for calibration; do not act on these',
+        stocks: judgments,
+      };
+      const text = JSON.stringify(body, null, 1);
+      // Every stock failing on data (not on Jev being off) means the call was unusable.
+      return judgments.every((j) => j.state === null) ? fail(text) : ok(text);
     },
   );
 

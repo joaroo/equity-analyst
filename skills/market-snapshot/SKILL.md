@@ -117,6 +117,14 @@ Return only the JSON schema below. No preamble, no prose. Report index levels ex
     "jev_status": "ok|disabled|failed",
     "jev_regime": "RISK-ON|TRANSITIONAL|RISK-OFF|null",
     "jev_probabilities": { "RISK-ON": 0.0, "TRANSITIONAL": 0.0, "RISK-OFF": 0.0 },
+    "jev_confidence": { "regime": 0.0, "trend_health": 0.0, "rotation": 0.0 },
+    "jev_atomic": {
+      "trend_health": { "type": "score", "score": 0.0, "probabilities": {} },
+      "stress_elevated": { "type": "boolean", "probability": 0.0 },
+      "rotation": { "type": "choice", "choice": "cyclicals_leading|mixed|defensives_leading", "probabilities": {} },
+      "policy_headwind": { "type": "boolean", "probability": 0.0 },
+      "home_diverges": { "type": "boolean", "probability": 0.0 }
+    },
     "agreement": "agree|disagree|jev_unavailable|rules_insufficient"
   },
   "implications": "Two sentences on market conditions for a Swedish investor: what drives the regime and which dated events inside the next 4 weeks could change it. Conditions only, no portfolio advice."
@@ -133,7 +141,7 @@ Return only the JSON schema below. No preamble, no prose. Report index levels ex
 - Do not take central-bank rates, moves or stance from news or search results — use `rates`
 - Do not classify regime with fewer than 5 of the 6 signals confirmed
 - Do not cache this output across sessions — always fetch fresh
-- Do not let the Jev opinion in `regime_check` change `regime` — it is recorded for calibration only. When `agreement` is `disagree`, or Jev's top probability is below 0.55, add one clause to `implications` saying the regime call is uncertain; nothing more
+- Do not let the Jev opinion in `regime_check` change `regime`, and do not interpret `jev_atomic` or `jev_confidence` anywhere in the output — they are recorded for calibration only. When `agreement` is `disagree`, or Jev's top probability is below 0.55, add one clause to `implications` saying the regime call is uncertain; nothing more
 - Do not fall back to the manual path when `regime` succeeded
 
 ## Verification Checklist
@@ -144,7 +152,7 @@ Return only the JSON schema below. No preamble, no prose. Report index levels ex
 - [ ] Central-bank rates, stances and last changes copied from `rates`; `net` computed with the weighted score (Riksbank ×3, ECB ×2, Fed ×1)
 - [ ] `sectors_5d_europe` contains at least 2 leading and 2 lagging entries
 - [ ] `divergence` filled when home and global indices disagree
-- [ ] `regime_check` copied from the tool's `jev` and `check` fields (fallback path: `method: "fallback"`, `jev_status: "disabled"`, Jev fields null, `agreement: "jev_unavailable"`)
+- [ ] `regime_check` copied from the tool's `jev` and `check` fields, with `jev_confidence` and `jev_atomic` copied verbatim from `jev.confidence` and `jev.atomic` (fallback path, or Jev not ok: `method: "fallback"` where applicable, `jev_status` as returned, all Jev fields null, `agreement: "jev_unavailable"`)
 - [ ] JSON is valid with no trailing prose
 - [ ] `implications` describes conditions only, with no buy/sell, sector-tilt or sizing advice
 - [ ] VIX signal label matches the level (Greed <15, Neutral 15–20, Caution 20–25, Fear >25)

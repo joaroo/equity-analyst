@@ -60,6 +60,12 @@
       "purpose": "Market regime (RISK-ON / TRANSITIONAL / RISK-OFF) in one call: index trend, VIX, European sector returns and central-bank stance fetched server-side, the market-snapshot signal matrix applied in code, plus an advisory TypeSafe Jev opinion with per-regime probabilities.",
       "docs": "connectors/market-data/CONNECTOR.md"
     },
+    "judgments": {
+      "server": "market-data",
+      "tool": "stock_judgments",
+      "purpose": "Shadow per-stock TypeSafe Jev judgments (20-trading-day direction up/flat/down at ±2%, trend score, overextended, event risk) with the state Jev saw and the reference close. Calibration logging only: read by the /council-analyze orchestrator in paper mode, never by an analyst, and never used to change a score, verdict or size.",
+      "docs": "connectors/market-data/CONNECTOR.md"
+    },
     "research": {
       "primary": "WebSearch",
       "follow_up": "WebFetch",

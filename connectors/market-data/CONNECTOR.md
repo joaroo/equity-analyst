@@ -15,6 +15,7 @@ Structured numbers for the analysis skills: current prices, OHLCV bars, computed
 | `fx` | `fx_rate` | ECB reference rates, latest or for a `date` (YYYY-MM-DD). |
 | `rates` | `central_bank_rates` | Riksbank policy rate, ECB key rates and Fed target range from official feeds (Riksbank SWEA API, ECB Data Portal, NY Fed), with the last two changes (effective dates), the next policy decision date from each bank's official calendar, and a stance: a change within 120 days sets Tightening/Easing, otherwise On hold. |
 | `regime` | `market_regime` | JSON: RISK-ON / TRANSITIONAL / RISK-OFF from the market-snapshot six-signal matrix computed server-side (index vs 50-day MA, VIX, cyclical vs defensive 5-day sector returns, weighted central-bank stance), every signal with its vote, index distances from the 50/200-day MAs, each bank's next decision date, and `failed_inputs`. Returns an MCP error when fewer than 5 of 6 signals are available. When the server has a TypeSafe key, `jev` adds an advisory Jev opinion with per-regime probabilities and `check.agreement`; it never changes `regime`. |
+| `judgments` | `stock_judgments` | JSON, shadow only: per-stock TypeSafe Jev judgments for up to 20 symbols — 20-trading-day direction (up / flat / down at ±2%), trend score (1–5), overextended and, when `eventDaysAway` is given, event risk — with the compact state Jev saw, the reference close and TypeSafe confidence. Read by the local `/council-analyze` orchestrator for calibration logging; never by an analyst, and never used to change a decision. |
 
 ## Symbols
 

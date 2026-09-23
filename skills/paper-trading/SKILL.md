@@ -21,8 +21,9 @@ description: Paper-trading ledger rules for equity-analyst — read the paper po
 | `paper-performance.csv` | One row per run: `date,run,holdings_value_sek,funds_value_sek,cash_sek,total_value_sek,cost_basis_sek,unrealized_pnl_sek,realized_pnl_sek,fees_paid_sek,return_since_start_pct,omx_since_start_pct,msci_world_sek_since_start_pct` | Appended |
 
 | `regime-calibration.csv` | One row per `/analyze` run, from the market context's `regime_check`: `date,rules_regime,jev_status,jev_regime,p_risk_on,p_transitional,p_risk_off,agreement,omx_close` | Appended |
+| `jev-log.jsonl` (optional) | One JSON line per Jev judgment (`kind` regime, stock or gate) with answers, probabilities, confidence, reference close and the state Jev saw, for scoring against later prices | Appended by the local pipeline's logging script only |
 
-`run` is `analyze` or `index-funds`. Never delete or rewrite existing CSV rows. `regime-calibration.csv` records whether Jev's regime probabilities are reliable enough to act on later; `omx_close` (from `quotes`) lets later rows score each call against what the market did next. Create it with its header row if missing.
+`run` is `analyze` or `index-funds`. Never delete or rewrite existing CSV rows. Never edit `jev-log.jsonl` by hand; if the file exists and the pipeline did not provide a logging step, leave it alone. `regime-calibration.csv` records whether Jev's regime probabilities are reliable enough to act on later; `omx_close` (from `quotes`) lets later rows score each call against what the market did next. Create it with its header row if missing.
 
 ## Workflow Steps
 
